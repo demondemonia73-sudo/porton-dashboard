@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Portón Automático - Control Remoto</title>
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 32px;
+            padding: 24px;
+            margin-bottom: 16px;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 24px;
+            text-align: center;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .badge-cloud {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            color: white;
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 40px;
+            font-weight: normal;
+        }
+
+        .status-bar {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin: 16px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-family: monospace;
+        }
+
+        .status-led {
+            width: 10px;
+            height: 10px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        .connected {
+            color: #10b981;
+        }
+        .disconnected {
+            color: #ef4444;
+        }
+
+        .porton-visual {
+            background: #334155;
+            border-radius: 24px;
+            padding: 24px 16px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .track {
+            background: #1e293b;
+            height: 6px;
+            border-radius: 3px;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .puerta {
+            position: absolute;
+            width: 80px;
+            height: 90px;
+            background: linear-gradient(145deg, #475569, #1e293b);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            transition: left 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            top: -42px;
+        }
+
+        .estado-texto {
+            text-align: center;
+            font-weight: 700;
+            font-size: 18px;
+            padding: 12px;
+            border-radius: 60px;
+            margin: 16px 0;
+        }
+
+        .abierto { background: #d1fae5; color: #065f46; }
+        .cerrado { background: #fee2e2; color: #991b1b; }
+        .intermedio { background: #fed7aa; color: #9a3412; }
+
+        .sensores-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .sensor-box {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .sensor-box.activo {
+            background: #dcfce7;
+            border-left: 4px solid #22c55e;
+        }
+
+        .sensor-icon {
+            font-size: 28px;
+            margin-bottom: 6px;
+        }
+
+        .botonera {
+            display: flex;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 60px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .btn:active { transform: scale(0.97); }
+        .btn-abrir { background: linear-gradient(135deg, #22c55e, #15803d); }
+        .btn-cerrar { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+        .btn-secundario { background: linear-gradient(135deg, #3b82f6, #1e40af); }
+
+        .info-footer {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 12px;
+            font-size: 11px;
+            color: #475569;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 40px;
+            margin: 4px;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>
+            🚪 PORTÓN <span class="badge-cloud">MQTT CLOUD</span>
+        </h1>
+        <div class="status-bar" id="statusBar">
+            <span>🔌 HiveMQ Cloud</span>
+            <span id="statusText">Conectando...</span>
+        </div>
+
+        <!-- Visualización del portón -->
+        <div class="porton-visual">
+            <div class="track"></div>
+            <div class="puerta" id="puertaAnimada">🚪</div>
+        </div>
+        <div class="estado-texto" id="estadoTexto">Cargando...</div>
+
+        <!-- Sensores de final de carrera -->
+        <div class="sensores-grid">
+            <div class="sensor-box" id="sensorAbiertoBox">
+                <div class="sensor-icon">🔓</div>
+                <div>FINAL ABIERTO</div>
+                <div id="sensorAbiertoVal">⚪</div>
+            </div>
+            <div class="sensor-box" id="sensorCerradoBox">
+                <div class="sensor-icon">🔒</div>
+                <div>FINAL CERRADO</div>
+                <div id="sensorCerradoVal">⚪</div>
+            </div>
+        </div>
+
+        <!-- Sensores externos (foto + movimiento) -->
+        <div class="sensores-grid">
+            <div class="sensor-box" id="fotoBox">
+                <div class="sensor-icon">📷</div>
+                <div>FOTOELÉCTRICA</div>
+                <div id="fotoVal">⚪</div>
+            </div>
+            <div class="sensor-box" id="movBox">
+                <div class="sensor-icon">🚶</div>
+                <div>MOVIMIENTO</div>
+                <div id="movVal">⚪</div>
+            </div>
+        </div>
+
+        <!-- Modo automático -->
+        <div class="sensor-box" id="autoBox" style="margin-bottom: 16px;">
+            <div class="sensor-icon">🤖</div>
+            <div>MODO AUTOMÁTICO</div>
+            <div id="autoVal">⚪</div>
+        </div>
+
+        <!-- Botones principales -->
+        <div class="botonera">
+            <button class="btn btn-abrir" id="btnAbrir">🔓 ABRIR</button>
+            <button class="btn btn-cerrar" id="btnCerrar">🔒 CERRAR</button>
+        </div>
+        <div class="botonera">
+            <button class="btn btn-secundario" id="btnToggleAuto">🤖 Toggle Auto</button>
+            <button class="btn btn-secundario" id="btnToggleFoto">📷 Toggle Foto</button>
+            <button class="btn btn-secundario" id="btnToggleMov">🚶 Toggle Mov</button>
+        </div>
+
+        <div class="info-footer">
+            <span class="badge">🌍 Control desde cualquier lugar</span>
+            <span class="badge">🔒 Sin abrir puertos</span>
+            <span class="badge">📡 Tiempo real</span>
+            <div id="timestamp" style="margin-top: 8px;"></div>
+            <div id="localAccess" style="margin-top: 8px; font-size: 10px;">
+                🏠 Acceso local: <strong>http://192.168.1.200</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== CONFIGURACIÓN HiveMQ ====================
+    const MQTT_CONFIG = {
+        broker: "wss://fce01a048733432a9eae2f8d8454ef46.s1.eu.hivemq.cloud:8884/mqtt",
+        username: "Esp32_device",
+        password: "Esp32Porton2024",
+        comandosTopic: "porton/comandos",
+        estadoTopic: "porton/estado",
+        sensoresTopic: "porton/sensores"
+    };
+
+    let client = null;
+    let connected = false;
+
+    // ==================== UI ====================
+    function updateConnectionStatus(connectedFlag) {
+        const statusText = document.getElementById('statusText');
+        if (connectedFlag) {
+            statusText.innerHTML = '<span class="status-led" style="background:#10b981;"></span> Conectado';
+            statusText.classList.add('connected');
+        } else {
+            statusText.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
+            statusText.classList.remove('connected');
+        }
+    }
+
+    function updatePortonUI(estado) {
+        const textoDiv = document.getElementById('estadoTexto');
+        const puerta = document.getElementById('puertaAnimada');
+        
+        if (estado === "ABIERTO") {
+            textoDiv.innerHTML = '✅ PORTÓN ABIERTO';
+            textoDiv.className = 'estado-texto abierto';
+            puerta.style.left = 'calc(100% - 90px)';
+        } else if (estado === "CERRADO") {
+            textoDiv.innerHTML = '🔒 PORTÓN CERRADO';
+            textoDiv.className = 'estado-texto cerrado';
+            puerta.style.left = '12px';
+        } else {
+            textoDiv.innerHTML = '⚠️ PORTÓN ENTREABIERTO';
+            textoDiv.className = 'estado-texto intermedio';
+            puerta.style.left = 'calc(50% - 45px)';
+        }
+    }
+
+    function updateSensores(data) {
+        const sensorAbiertoVal = document.getElementById('sensorAbiertoVal');
+        const sensorCerradoVal = document.getElementById('sensorCerradoVal');
+        const abiertoBox = document.getElementById('sensorAbiertoBox');
+        const cerradoBox = document.getElementById('sensorCerradoBox');
+        
+        if (data.abierto) {
+            sensorAbiertoVal.innerHTML = '✅ ACTIVADO';
+            abiertoBox.classList.add('activo');
+        } else {
+            sensorAbiertoVal.innerHTML = '⚪ INACTIVO';
+            abiertoBox.classList.remove('activo');
+        }
+        
+        if (data.cerrado) {
+            sensorCerradoVal.innerHTML = '✅ ACTIVADO';
+            cerradoBox.classList.add('activo');
+        } else {
+            sensorCerradoVal.innerHTML = '⚪ INACTIVO';
+            cerradoBox.classList.remove('activo');
+        }
+    }
+
+    function updateConfiguracion(data) {
+        const fotoVal = document.getElementById('fotoVal');
+        const movVal = document.getElementById('movVal');
+        const autoVal = document.getElementById('autoVal');
+        const fotoBox = document.getElementById('fotoBox');
+        const movBox = document.getElementById('movBox');
+        const autoBox = document.getElementById('autoBox');
+        
+        if (data.fotoHabilitado !== undefined) {
+            if (data.fotoHabilitado) {
+                fotoVal.innerHTML = '✅ HABILITADO';
+                fotoBox.classList.add('activo');
+            } else {
+                fotoVal.innerHTML = '⚪ DESHABILITADO';
+                fotoBox.classList.remove('activo');
+            }
+        }
+        
+        if (data.movHabilitado !== undefined) {
+            if (data.movHabilitado) {
+                movVal.innerHTML = '✅ HABILITADO';
+                movBox.classList.add('activo');
+            } else {
+                movVal.innerHTML = '⚪ DESHABILITADO';
+                movBox.classList.remove('activo');
+            }
+        }
+        
+        if (data.modoAuto !== undefined) {
+            if (data.modoAuto) {
+                autoVal.innerHTML = '✅ ACTIVADO';
+                autoBox.classList.add('activo');
+            } else {
+                autoVal.innerHTML = '⚪ DESACTIVADO';
+                autoBox.classList.remove('activo');
+            }
+        }
+    }
+
+    function sendCommand(cmd) {
+        if (!client || !connected) {
+            alert("⚠️ No hay conexión con HiveMQ. Revisa tu internet o credenciales.");
+            return;
+        }
+        client.publish(MQTT_CONFIG.comandosTopic, cmd);
+        document.getElementById('timestamp').innerHTML = `📨 Comando "${cmd}" enviado a las ${new Date().toLocaleTimeString()}`;
+        setTimeout(() => {
+            if (!document.getElementById('timestamp').innerHTML.includes("Comando")) {
+                document.getElementById('timestamp').innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
+            }
+        }, 3000);
+    }
+
+    // ==================== MQTT ====================
+    function connectMQTT() {
+        const options = {
+            username: MQTT_CONFIG.username,
+            password: MQTT_CONFIG.password,
+            clientId: "web_dashboard_" + Math.random().toString(16).substr(2, 8),
+            clean: true,
+            keepalive: 60,
+            reconnectPeriod: 5000
+        };
+
+        client = mqtt.connect(MQTT_CONFIG.broker, options);
+
+        client.on('connect', () => {
+            console.log("✅ Conectado a HiveMQ");
+            connected = true;
+            updateConnectionStatus(true);
+            
+            client.subscribe(MQTT_CONFIG.estadoTopic);
+            client.subscribe(MQTT_CONFIG.sensoresTopic);
+            
+            setTimeout(() => {
+                sendCommand("ESTADO");
+            }, 500);
+        });
+
+        client.on('message', (topic, message) => {
+            const payload = message.toString();
+            console.log("📨 Recibido:", topic, payload);
+            
+            try {
+                const data = JSON.parse(payload);
+                if (topic === MQTT_CONFIG.estadoTopic) {
+                    if (data.estado) updatePortonUI(data.estado);
+                    updateConfiguracion(data);
+                } else if (topic === MQTT_CONFIG.sensoresTopic) {
+                    updateSensores(data);
+                }
+                document.getElementById('timestamp').innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
+            } catch(e) {
+                console.warn("Error parseando JSON:", payload);
+            }
+        });
+
+        client.on('error', (err) => {
+            console.error("❌ MQTT Error:", err);
+            connected = false;
+            updateConnectionStatus(false);
+        });
+
+        client.on('offline', () => {
+            connected = false;
+            updateConnectionStatus(false);
+        });
+    }
+
+    // ==================== INICIO ====================
+    function init() {
+        connectMQTT();
+        
+        document.getElementById('btnAbrir').onclick = () => sendCommand("ABRIR");
+        document.getElementById('btnCerrar').onclick = () => sendCommand("CERRAR");
+        document.getElementById('btnToggleAuto').onclick = () => sendCommand("TOGGLE_AUTO");
+        document.getElementById('btnToggleFoto').onclick = () => sendCommand("TOGGLE_FOTO");
+        document.getElementById('btnToggleMov').onclick = () => sendCommand("TOGGLE_MOV");
+        
+        setInterval(() => {
+            if (!document.getElementById('timestamp').innerHTML.includes("Comando")) {
+                document.getElementById('timestamp').innerHTML = `🕐 Conectado: ${new Date().toLocaleTimeString()}`;
+            }
+        }, 10000);
+    }
+    
+    window.onload = init;
+</script>
+</body>
+</html>
