@@ -19,6 +19,11 @@
             padding: 16px;
         }
 
+        /* PANTALLA DE EMERGENCIA */
+        body.emergencia {
+            background: #8b0000;
+        }
+
         .container {
             max-width: 500px;
             margin: 0 auto;
@@ -32,6 +37,46 @@
             box-shadow: 0 20px 35px -10px rgba(0,0,0,0.3);
         }
 
+        /* Estilos para emergencia */
+        .emergencia-card {
+            background: #a00000;
+            color: white;
+            text-align: center;
+        }
+
+        .emergencia-card h1 {
+            color: white;
+            font-size: 48px;
+        }
+
+        .emergencia-texto {
+            font-size: 24px;
+            margin: 20px 0;
+            animation: parpadeo 1s infinite;
+        }
+
+        @keyframes parpadeo {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .emergencia-card .btn {
+            background: white;
+            color: #8b0000;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .contador {
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        /* Estilos normales */
         h1 {
             font-size: 24px;
             text-align: center;
@@ -231,91 +276,100 @@
         .esp32-offline {
             background: #f56565;
         }
+
+        .toggle-switch {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .toggle-label {
+            font-weight: bold;
+            color: #4a5568;
+            font-size: 13px;
+        }
+
+        .toggle-button {
+            width: 50px;
+            height: 26px;
+            background: #cbd5e0;
+            border-radius: 30px;
+            position: relative;
+            cursor: pointer;
+            transition: 0.3s;
+            display: inline-block;
+        }
+
+        .toggle-button.active {
+            background: #48bb78;
+        }
+
+        .toggle-button::after {
+            content: '';
+            width: 22px;
+            height: 22px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: 0.3s;
+        }
+
+        .toggle-button.active::after {
+            left: 26px;
+        }
+
+        .menu-sensores {
+            background: #f0f0f0;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .menu-header {
+            background: #2b5876;
+            color: #fff;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .menu-header:hover {
+            background: #1e3a5f;
+        }
+
+        .menu-header::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+
+        .menu-header.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .menu-content {
+            max-height: 300px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            padding: 0 12px;
+        }
+
+        .menu-content.collapsed {
+            max-height: 0;
+            padding: 0 12px;
+        }
     </style>
 </head>
-<body>
-<div class="container">
-    <div class="card">
-        <h1>
-            🚪 PORTÓN <span class="badge-cloud">MQTT CLOUD</span>
-        </h1>
-        
-        <!-- RELOJ -->
-        <div class="reloj" id="reloj">--/--/---- --:--:--</div>
-        
-        <!-- ESTADO MQTT Y ESP32 -->
-        <div class="status-bar">
-            <span>🔌 HiveMQ Cloud</span>
-            <span id="statusText">Conectando...</span>
-        </div>
-        <div class="status-bar">
-            <span>🖥️ ESP32</span>
-            <span id="esp32StatusText">Conectando...</span>
-        </div>
-
-        <!-- Visualización del portón -->
-        <div class="porton-visual">
-            <div class="track"></div>
-            <div class="puerta" id="puertaAnimada">🚪</div>
-        </div>
-        <div class="estado-texto" id="estadoTexto">Cargando...</div>
-
-        <!-- Sensores de final de carrera -->
-        <div class="sensores-grid">
-            <div class="sensor-box" id="sensorAbiertoBox">
-                <div class="sensor-icon">🔓</div>
-                <div>FINAL ABIERTO</div>
-                <div id="sensorAbiertoVal">⚪</div>
-            </div>
-            <div class="sensor-box" id="sensorCerradoBox">
-                <div class="sensor-icon">🔒</div>
-                <div>FINAL CERRADO</div>
-                <div id="sensorCerradoVal">⚪</div>
-            </div>
-        </div>
-
-        <!-- Sensores externos (foto + movimiento) -->
-        <div class="sensores-grid">
-            <div class="sensor-box" id="fotoBox">
-                <div class="sensor-icon">📷</div>
-                <div>FOTOELÉCTRICA</div>
-                <div id="fotoVal">⚪</div>
-            </div>
-            <div class="sensor-box" id="movBox">
-                <div class="sensor-icon">🚶</div>
-                <div>MOVIMIENTO</div>
-                <div id="movVal">⚪</div>
-            </div>
-        </div>
-
-        <!-- Modo automático -->
-        <div class="sensor-box" id="autoBox" style="margin-bottom: 16px;">
-            <div class="sensor-icon">🤖</div>
-            <div>MODO AUTOMÁTICO</div>
-            <div id="autoVal">⚪</div>
-        </div>
-
-        <!-- Botones principales -->
-        <div class="botonera">
-            <button class="btn btn-abrir" id="btnAbrir">🔓 ABRIR</button>
-            <button class="btn btn-cerrar" id="btnCerrar">🔒 CERRAR</button>
-        </div>
-        <div class="botonera">
-            <button class="btn btn-secundario" id="btnToggleAuto">🤖 Toggle Auto</button>
-            <button class="btn btn-secundario" id="btnToggleFoto">📷 Toggle Foto</button>
-            <button class="btn btn-secundario" id="btnToggleMov">🚶 Toggle Mov</button>
-        </div>
-
-        <div class="info-footer">
-            <span class="badge">🌍 Control desde cualquier lugar</span>
-            <span class="badge">🔒 Sin abrir puertos</span>
-            <span class="badge">📡 Tiempo real</span>
-            <div id="timestamp" style="margin-top: 8px;"></div>
-            <div id="localAccess" style="margin-top: 8px; font-size: 10px;">
-                🏠 Acceso local: <strong>http://192.168.1.200</strong>
-            </div>
-        </div>
-    </div>
+<body id="mainBody">
+<div class="container" id="mainContainer">
+    <!-- El contenido se actualizará dinámicamente según emergencia -->
 </div>
 
 <script>
@@ -334,45 +388,214 @@
     let connected = false;
     let esp32Online = false;
     let ultimoHeartbeat = 0;
-    
-    // ==================== RELOJ ====================
+    let emergenciaActiva = false;
+    let menuAbierto = true;
+
+    // ==================== FUNCIONES DE UI ====================
+    function renderNormal() {
+        document.getElementById('mainBody').classList.remove('emergencia');
+        document.getElementById('mainContainer').innerHTML = `
+            <div class="card">
+                <h1>🚪 PORTÓN <span class="badge-cloud">MQTT CLOUD</span></h1>
+                <div class="reloj" id="reloj">--/--/---- --:--:--</div>
+                <div class="status-bar">
+                    <span>🔌 HiveMQ Cloud</span>
+                    <span id="statusText">Conectando...</span>
+                </div>
+                <div class="status-bar">
+                    <span>🖥️ ESP32</span>
+                    <span id="esp32StatusText">Conectando...</span>
+                </div>
+
+                <!-- Menú de control -->
+                <div class="menu-sensores">
+                    <div class="menu-header" onclick="toggleMenu()">🔧 CONTROL SENSORES EXTERNOS</div>
+                    <div class="menu-content" id="menuContent">
+                        <div class="toggle-switch">
+                            <span class="toggle-label">📷 Fotoeléctrica</span>
+                            <div class="toggle-button" id="toggleFoto" onclick="toggleSensor('foto')"></div>
+                        </div>
+                        <div class="toggle-switch">
+                            <span class="toggle-label">🚶 Sensor Movimiento</span>
+                            <div class="toggle-button" id="toggleMov" onclick="toggleSensor('mov')"></div>
+                        </div>
+                        <div class="toggle-switch">
+                            <span class="toggle-label">🤖 Modo Automático</span>
+                            <div class="toggle-button" id="toggleAuto" onclick="toggleModoAuto()"></div>
+                        </div>
+                        <div class="toggle-switch">
+                            <span class="toggle-label">🎮 Botón Físico</span>
+                            <div class="toggle-button" id="toggleBoton" onclick="toggleBotonFisico()"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="porton-visual">
+                    <div class="track"></div>
+                    <div class="puerta" id="puertaAnimada">🚪</div>
+                </div>
+                <div class="estado-texto" id="estadoTexto">Cargando...</div>
+
+                <div class="sensores-grid">
+                    <div class="sensor-box" id="sensorAbiertoBox">
+                        <div class="sensor-icon">🔓</div>
+                        <div>FINAL ABIERTO</div>
+                        <div id="sensorAbiertoVal">⚪</div>
+                    </div>
+                    <div class="sensor-box" id="sensorCerradoBox">
+                        <div class="sensor-icon">🔒</div>
+                        <div>FINAL CERRADO</div>
+                        <div id="sensorCerradoVal">⚪</div>
+                    </div>
+                </div>
+
+                <div class="sensores-grid">
+                    <div class="sensor-box" id="fotoBox">
+                        <div class="sensor-icon">📷</div>
+                        <div>FOTOELÉCTRICA</div>
+                        <div id="fotoVal">⚪</div>
+                    </div>
+                    <div class="sensor-box" id="movBox">
+                        <div class="sensor-icon">🚶</div>
+                        <div>MOVIMIENTO</div>
+                        <div id="movVal">⚪</div>
+                    </div>
+                </div>
+
+                <div class="sensor-box" id="autoBox" style="margin-bottom: 16px;">
+                    <div class="sensor-icon">🤖</div>
+                    <div>MODO AUTOMÁTICO</div>
+                    <div id="autoVal">⚪</div>
+                </div>
+
+                <div class="botonera">
+                    <button class="btn btn-abrir" id="btnAbrir">🔓 ABRIR</button>
+                    <button class="btn btn-cerrar" id="btnCerrar">🔒 CERRAR</button>
+                </div>
+                <div class="botonera">
+                    <button class="btn btn-secundario" id="btnToggleAuto">🤖 Toggle Auto</button>
+                    <button class="btn btn-secundario" id="btnToggleFoto">📷 Toggle Foto</button>
+                    <button class="btn btn-secundario" id="btnToggleMov">🚶 Toggle Mov</button>
+                </div>
+
+                <div class="info-footer">
+                    <span class="badge">🌍 Control desde cualquier lugar</span>
+                    <span class="badge">🔒 Sin abrir puertos</span>
+                    <span class="badge">📡 Tiempo real</span>
+                    <div id="timestamp" style="margin-top: 8px;"></div>
+                    <div id="localAccess" style="margin-top: 8px; font-size: 10px;">
+                        🏠 Acceso local: <strong>http://192.168.1.200</strong>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Re-asignar eventos después de renderizar
+        setTimeout(() => {
+            if (document.getElementById('btnAbrir')) document.getElementById('btnAbrir').onclick = () => sendCommand("ABRIR");
+            if (document.getElementById('btnCerrar')) document.getElementById('btnCerrar').onclick = () => sendCommand("CERRAR");
+            if (document.getElementById('btnToggleAuto')) document.getElementById('btnToggleAuto').onclick = () => sendCommand("TOGGLE_AUTO");
+            if (document.getElementById('btnToggleFoto')) document.getElementById('btnToggleFoto').onclick = () => sendCommand("TOGGLE_FOTO");
+            if (document.getElementById('btnToggleMov')) document.getElementById('btnToggleMov').onclick = () => sendCommand("TOGGLE_MOV");
+        }, 100);
+    }
+
+    function renderEmergencia() {
+        document.getElementById('mainBody').classList.add('emergencia');
+        document.getElementById('mainContainer').innerHTML = `
+            <div class="card emergencia-card">
+                <h1>🛑 EMERGENCIA 🛑</h1>
+                <div class="emergencia-texto">PARADA DE EMERGENCIA ACTIVADA</div>
+                <p>🔒 Chapa eléctrica activada</p>
+                <p>⛔ Motor desactivado</p>
+                <p>🔌 Sensores externos desactivados</p>
+                <div class="contador" id="contador">Recargando en 3 segundos...</div>
+                <button class="btn" onclick="location.reload()">🔄 Actualizar ahora</button>
+            </div>
+        `;
+        
+        let segundos = 3;
+        const contador = document.getElementById('contador');
+        const intervalo = setInterval(() => {
+            segundos--;
+            if (contador) contador.innerHTML = `Recargando en ${segundos} segundos...`;
+            if (segundos <= 0) {
+                clearInterval(intervalo);
+                location.reload();
+            }
+        }, 1000);
+        setTimeout(() => { location.reload(); }, 3000);
+    }
+
+    function toggleMenu() {
+        menuAbierto = !menuAbierto;
+        let menu = document.getElementById('menuContent');
+        let header = document.querySelector('.menu-header');
+        if (menuAbierto) {
+            menu.classList.remove('collapsed');
+            header.classList.remove('collapsed');
+        } else {
+            menu.classList.add('collapsed');
+            header.classList.add('collapsed');
+        }
+    }
+
+    function toggleSensor(sensor) {
+        sendCommand(sensor === 'foto' ? "TOGGLE_FOTO" : "TOGGLE_MOV");
+    }
+
+    function toggleModoAuto() {
+        sendCommand("TOGGLE_AUTO");
+    }
+
+    function toggleBotonFisico() {
+        sendCommand("TOGGLE_BOTON");
+    }
+
+    // ==================== FUNCIONES DE ACTUALIZACIÓN ====================
     function actualizarReloj() {
-        const ahora = new Date();
-        const hora = ahora.getHours().toString().padStart(2, '0');
-        const minutos = ahora.getMinutes().toString().padStart(2, '0');
-        const segundos = ahora.getSeconds().toString().padStart(2, '0');
-        const fecha = ahora.toLocaleDateString('es-ES');
-        document.getElementById('reloj').innerHTML = `${fecha} ${hora}:${minutos}:${segundos}`;
+        const relojDiv = document.getElementById('reloj');
+        if (relojDiv) {
+            const ahora = new Date();
+            const hora = ahora.getHours().toString().padStart(2, '0');
+            const minutos = ahora.getMinutes().toString().padStart(2, '0');
+            const segundos = ahora.getSeconds().toString().padStart(2, '0');
+            const fecha = ahora.toLocaleDateString('es-ES');
+            relojDiv.innerHTML = `${fecha} ${hora}:${minutos}:${segundos}`;
+        }
     }
     setInterval(actualizarReloj, 1000);
-    actualizarReloj();
 
-    // ==================== UI ====================
     function updateConnectionStatus(connectedFlag) {
         const statusText = document.getElementById('statusText');
-        if (connectedFlag) {
-            statusText.innerHTML = '<span class="status-led" style="background:#10b981;"></span> Conectado';
-            statusText.classList.add('connected');
-        } else {
-            statusText.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
-            statusText.classList.remove('connected');
+        if (statusText) {
+            if (connectedFlag) {
+                statusText.innerHTML = '<span class="status-led" style="background:#10b981;"></span> Conectado';
+                statusText.classList.add('connected');
+            } else {
+                statusText.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
+                statusText.classList.remove('connected');
+            }
         }
     }
 
     function updateEsp32Status(online) {
         const esp32Text = document.getElementById('esp32StatusText');
-        if (online) {
-            esp32Text.innerHTML = '<span class="status-led" style="background:#10b981;"></span> En línea';
-            esp32Text.classList.add('connected');
-        } else {
-            esp32Text.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
-            esp32Text.classList.remove('connected');
+        if (esp32Text) {
+            if (online) {
+                esp32Text.innerHTML = '<span class="status-led" style="background:#10b981;"></span> En línea';
+                esp32Text.classList.add('connected');
+            } else {
+                esp32Text.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
+                esp32Text.classList.remove('connected');
+            }
         }
     }
 
     function updatePortonUI(estado) {
         const textoDiv = document.getElementById('estadoTexto');
         const puerta = document.getElementById('puertaAnimada');
+        if (!textoDiv || !puerta) return;
         
         if (estado === "ABIERTO") {
             textoDiv.innerHTML = '✅ PORTÓN ABIERTO';
@@ -395,20 +618,24 @@
         const abiertoBox = document.getElementById('sensorAbiertoBox');
         const cerradoBox = document.getElementById('sensorCerradoBox');
         
-        if (data.abierto) {
-            sensorAbiertoVal.innerHTML = '✅ ACTIVADO';
-            abiertoBox.classList.add('activo');
-        } else {
-            sensorAbiertoVal.innerHTML = '⚪ INACTIVO';
-            abiertoBox.classList.remove('activo');
+        if (sensorAbiertoVal && abiertoBox) {
+            if (data.abierto) {
+                sensorAbiertoVal.innerHTML = '✅ ACTIVADO';
+                abiertoBox.classList.add('activo');
+            } else {
+                sensorAbiertoVal.innerHTML = '⚪ INACTIVO';
+                abiertoBox.classList.remove('activo');
+            }
         }
         
-        if (data.cerrado) {
-            sensorCerradoVal.innerHTML = '✅ ACTIVADO';
-            cerradoBox.classList.add('activo');
-        } else {
-            sensorCerradoVal.innerHTML = '⚪ INACTIVO';
-            cerradoBox.classList.remove('activo');
+        if (sensorCerradoVal && cerradoBox) {
+            if (data.cerrado) {
+                sensorCerradoVal.innerHTML = '✅ ACTIVADO';
+                cerradoBox.classList.add('activo');
+            } else {
+                sensorCerradoVal.innerHTML = '⚪ INACTIVO';
+                cerradoBox.classList.remove('activo');
+            }
         }
     }
 
@@ -419,34 +646,52 @@
         const fotoBox = document.getElementById('fotoBox');
         const movBox = document.getElementById('movBox');
         const autoBox = document.getElementById('autoBox');
+        const toggleFoto = document.getElementById('toggleFoto');
+        const toggleMov = document.getElementById('toggleMov');
+        const toggleAuto = document.getElementById('toggleAuto');
+        const toggleBoton = document.getElementById('toggleBoton');
         
-        if (data.fotoHabilitado !== undefined) {
+        if (data.fotoHabilitado !== undefined && toggleFoto) {
             if (data.fotoHabilitado) {
-                fotoVal.innerHTML = '✅ HABILITADO';
-                fotoBox.classList.add('activo');
+                if (fotoVal) fotoVal.innerHTML = '✅ HABILITADO';
+                if (fotoBox) fotoBox.classList.add('activo');
+                toggleFoto.classList.add('active');
             } else {
-                fotoVal.innerHTML = '⚪ DESHABILITADO';
-                fotoBox.classList.remove('activo');
+                if (fotoVal) fotoVal.innerHTML = '⚪ DESHABILITADO';
+                if (fotoBox) fotoBox.classList.remove('activo');
+                toggleFoto.classList.remove('active');
             }
         }
         
-        if (data.movHabilitado !== undefined) {
+        if (data.movHabilitado !== undefined && toggleMov) {
             if (data.movHabilitado) {
-                movVal.innerHTML = '✅ HABILITADO';
-                movBox.classList.add('activo');
+                if (movVal) movVal.innerHTML = '✅ HABILITADO';
+                if (movBox) movBox.classList.add('activo');
+                toggleMov.classList.add('active');
             } else {
-                movVal.innerHTML = '⚪ DESHABILITADO';
-                movBox.classList.remove('activo');
+                if (movVal) movVal.innerHTML = '⚪ DESHABILITADO';
+                if (movBox) movBox.classList.remove('activo');
+                toggleMov.classList.remove('active');
             }
         }
         
-        if (data.modoAuto !== undefined) {
+        if (data.modoAuto !== undefined && toggleAuto) {
             if (data.modoAuto) {
-                autoVal.innerHTML = '✅ ACTIVADO';
-                autoBox.classList.add('activo');
+                if (autoVal) autoVal.innerHTML = '✅ ACTIVADO';
+                if (autoBox) autoBox.classList.add('activo');
+                toggleAuto.classList.add('active');
             } else {
-                autoVal.innerHTML = '⚪ DESACTIVADO';
-                autoBox.classList.remove('activo');
+                if (autoVal) autoVal.innerHTML = '⚪ DESACTIVADO';
+                if (autoBox) autoBox.classList.remove('activo');
+                toggleAuto.classList.remove('active');
+            }
+        }
+        
+        if (data.botonFisicoHabilitado !== undefined && toggleBoton) {
+            if (data.botonFisicoHabilitado) {
+                toggleBoton.classList.add('active');
+            } else {
+                toggleBoton.classList.remove('active');
             }
         }
     }
@@ -457,12 +702,15 @@
             return;
         }
         client.publish(MQTT_CONFIG.comandosTopic, cmd);
-        document.getElementById('timestamp').innerHTML = `📨 Comando "${cmd}" enviado a las ${new Date().toLocaleTimeString()}`;
-        setTimeout(() => {
-            if (!document.getElementById('timestamp').innerHTML.includes("Comando")) {
-                document.getElementById('timestamp').innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
-            }
-        }, 3000);
+        const timestampDiv = document.getElementById('timestamp');
+        if (timestampDiv) {
+            timestampDiv.innerHTML = `📨 Comando "${cmd}" enviado a las ${new Date().toLocaleTimeString()}`;
+            setTimeout(() => {
+                if (timestampDiv && !timestampDiv.innerHTML.includes("Comando")) {
+                    timestampDiv.innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
+                }
+            }, 3000);
+        }
     }
 
     // ==================== MQTT ====================
@@ -487,7 +735,6 @@
             client.subscribe(MQTT_CONFIG.sensoresTopic);
             client.subscribe(MQTT_CONFIG.heartbeatTopic);
             
-            // Pedir estado actual
             setTimeout(() => {
                 sendCommand("ESTADO");
             }, 500);
@@ -497,11 +744,31 @@
             const payload = message.toString();
             console.log("📨 Recibido:", topic, payload);
             
-            // Heartbeat del ESP32
             if (topic === MQTT_CONFIG.heartbeatTopic) {
                 esp32Online = true;
                 ultimoHeartbeat = Date.now();
                 updateEsp32Status(true);
+                return;
+            }
+            
+            // Detectar emergencia
+            if (payload.includes('"emergenciaActiva":true')) {
+                if (!emergenciaActiva) {
+                    emergenciaActiva = true;
+                    renderEmergencia();
+                }
+                return;
+            }
+            
+            if (emergenciaActiva && payload.includes('"emergenciaActiva":false')) {
+                emergenciaActiva = false;
+                renderNormal();
+                // Reconectar después de renderizar
+                setTimeout(() => {
+                    if (client && !connected) {
+                        connectMQTT();
+                    }
+                }, 500);
                 return;
             }
             
@@ -513,7 +780,10 @@
                 } else if (topic === MQTT_CONFIG.sensoresTopic) {
                     updateSensores(data);
                 }
-                document.getElementById('timestamp').innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
+                const timestampDiv = document.getElementById('timestamp');
+                if (timestampDiv) {
+                    timestampDiv.innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
+                }
             } catch(e) {
                 console.warn("Error parseando JSON:", payload);
             }
@@ -541,17 +811,13 @@
 
     // ==================== INICIO ====================
     function init() {
+        renderNormal();
         connectMQTT();
         
-        document.getElementById('btnAbrir').onclick = () => sendCommand("ABRIR");
-        document.getElementById('btnCerrar').onclick = () => sendCommand("CERRAR");
-        document.getElementById('btnToggleAuto').onclick = () => sendCommand("TOGGLE_AUTO");
-        document.getElementById('btnToggleFoto').onclick = () => sendCommand("TOGGLE_FOTO");
-        document.getElementById('btnToggleMov').onclick = () => sendCommand("TOGGLE_MOV");
-        
         setInterval(() => {
-            if (!document.getElementById('timestamp').innerHTML.includes("Comando")) {
-                document.getElementById('timestamp').innerHTML = `🕐 Conectado: ${new Date().toLocaleTimeString()}`;
+            if (!emergenciaActiva && document.getElementById('timestamp') && !document.getElementById('timestamp').innerHTML.includes("Comando")) {
+                const ts = document.getElementById('timestamp');
+                if (ts) ts.innerHTML = `🕐 Conectado: ${new Date().toLocaleTimeString()}`;
             }
         }, 10000);
     }
