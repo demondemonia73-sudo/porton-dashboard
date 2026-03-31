@@ -51,6 +51,18 @@
             font-weight: normal;
         }
 
+        .reloj {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 12px 16px;
+            margin: 16px 0;
+            text-align: center;
+            font-family: monospace;
+            font-size: 18px;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
         .status-bar {
             background: #f1f5f9;
             border-radius: 20px;
@@ -76,6 +88,24 @@
         }
         .disconnected {
             color: #ef4444;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-online {
+            background: #48bb78;
+            color: white;
+        }
+
+        .status-offline {
+            background: #f56565;
+            color: white;
         }
 
         .porton-visual {
@@ -187,6 +217,20 @@
             margin: 4px;
             font-size: 10px;
         }
+
+        .esp32-badge {
+            background: #48bb78;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 40px;
+            margin: 4px;
+            font-size: 10px;
+            display: inline-block;
+        }
+
+        .esp32-offline {
+            background: #f56565;
+        }
     </style>
 </head>
 <body>
@@ -195,9 +239,18 @@
         <h1>
             🚪 PORTÓN <span class="badge-cloud">MQTT CLOUD</span>
         </h1>
-        <div class="status-bar" id="statusBar">
+        
+        <!-- RELOJ -->
+        <div class="reloj" id="reloj">--/--/---- --:--:--</div>
+        
+        <!-- ESTADO MQTT Y ESP32 -->
+        <div class="status-bar">
             <span>🔌 HiveMQ Cloud</span>
             <span id="statusText">Conectando...</span>
+        </div>
+        <div class="status-bar">
+            <span>🖥️ ESP32</span>
+            <span id="esp32StatusText">Conectando...</span>
         </div>
 
         <!-- Visualización del portón -->
@@ -269,15 +322,30 @@
     // ==================== CONFIGURACIÓN HiveMQ ====================
     const MQTT_CONFIG = {
         broker: "wss://fce01a048733432a9eae2f8d8454ef46.s1.eu.hivemq.cloud:8884/mqtt",
-        username: "Esp32_device",
-        password: "Esp32Porton2024",
+        username: "prueba",
+        password: "Prueba2026",
         comandosTopic: "porton/comandos",
         estadoTopic: "porton/estado",
-        sensoresTopic: "porton/sensores"
+        sensoresTopic: "porton/sensores",
+        heartbeatTopic: "porton/heartbeat"
     };
 
     let client = null;
     let connected = false;
+    let esp32Online = false;
+    let ultimoHeartbeat = 0;
+    
+    // ==================== RELOJ ====================
+    function actualizarReloj() {
+        const ahora = new Date();
+        const hora = ahora.getHours().toString().padStart(2, '0');
+        const minutos = ahora.getMinutes().toString().padStart(2, '0');
+        const segundos = ahora.getSeconds().toString().padStart(2, '0');
+        const fecha = ahora.toLocaleDateString('es-ES');
+        document.getElementById('reloj').innerHTML = `${fecha} ${hora}:${minutos}:${segundos}`;
+    }
+    setInterval(actualizarReloj, 1000);
+    actualizarReloj();
 
     // ==================== UI ====================
     function updateConnectionStatus(connectedFlag) {
@@ -288,6 +356,17 @@
         } else {
             statusText.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
             statusText.classList.remove('connected');
+        }
+    }
+
+    function updateEsp32Status(online) {
+        const esp32Text = document.getElementById('esp32StatusText');
+        if (online) {
+            esp32Text.innerHTML = '<span class="status-led" style="background:#10b981;"></span> En línea';
+            esp32Text.classList.add('connected');
+        } else {
+            esp32Text.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
+            esp32Text.classList.remove('connected');
         }
     }
 
@@ -406,7 +485,9 @@
             
             client.subscribe(MQTT_CONFIG.estadoTopic);
             client.subscribe(MQTT_CONFIG.sensoresTopic);
+            client.subscribe(MQTT_CONFIG.heartbeatTopic);
             
+            // Pedir estado actual
             setTimeout(() => {
                 sendCommand("ESTADO");
             }, 500);
@@ -415,6 +496,14 @@
         client.on('message', (topic, message) => {
             const payload = message.toString();
             console.log("📨 Recibido:", topic, payload);
+            
+            // Heartbeat del ESP32
+            if (topic === MQTT_CONFIG.heartbeatTopic) {
+                esp32Online = true;
+                ultimoHeartbeat = Date.now();
+                updateEsp32Status(true);
+                return;
+            }
             
             try {
                 const data = JSON.parse(payload);
@@ -441,6 +530,14 @@
             updateConnectionStatus(false);
         });
     }
+
+    // ==================== VERIFICAR HEARTBEAT ====================
+    setInterval(() => {
+        if (ultimoHeartbeat > 0 && Date.now() - ultimoHeartbeat > 30000) {
+            esp32Online = false;
+            updateEsp32Status(false);
+        }
+    }, 5000);
 
     // ==================== INICIO ====================
     function init() {
