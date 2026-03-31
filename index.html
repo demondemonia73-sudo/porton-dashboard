@@ -19,7 +19,6 @@
             padding: 16px;
         }
 
-        /* PANTALLA DE EMERGENCIA */
         body.emergencia {
             background: #8b0000;
         }
@@ -37,7 +36,6 @@
             box-shadow: 0 20px 35px -10px rgba(0,0,0,0.3);
         }
 
-        /* Estilos para emergencia */
         .emergencia-card {
             background: #a00000;
             color: white;
@@ -76,7 +74,6 @@
             margin-top: 20px;
         }
 
-        /* Estilos normales */
         h1 {
             font-size: 24px;
             text-align: center;
@@ -133,24 +130,6 @@
         }
         .disconnected {
             color: #ef4444;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .status-online {
-            background: #48bb78;
-            color: white;
-        }
-
-        .status-offline {
-            background: #f56565;
-            color: white;
         }
 
         .porton-visual {
@@ -263,18 +242,49 @@
             font-size: 10px;
         }
 
-        .esp32-badge {
-            background: #48bb78;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 40px;
-            margin: 4px;
-            font-size: 10px;
-            display: inline-block;
+        .menu-sensores {
+            background: #f0f0f0;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
         }
 
-        .esp32-offline {
-            background: #f56565;
+        .menu-header {
+            background: #2b5876;
+            color: #fff;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .menu-header:hover {
+            background: #1e3a5f;
+        }
+
+        .menu-header::after {
+            content: '▼';
+            font-size: 10px;
+            transition: transform 0.3s;
+        }
+
+        .menu-header.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .menu-content {
+            max-height: 300px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            padding: 0 12px;
+        }
+
+        .menu-content.collapsed {
+            max-height: 0;
+            padding: 0 12px;
         }
 
         .toggle-switch {
@@ -320,60 +330,12 @@
         .toggle-button.active::after {
             left: 26px;
         }
-
-        .menu-sensores {
-            background: #f0f0f0;
-            border-radius: 10px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .menu-header {
-            background: #2b5876;
-            color: #fff;
-            padding: 10px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .menu-header:hover {
-            background: #1e3a5f;
-        }
-
-        .menu-header::after {
-            content: '▼';
-            font-size: 10px;
-            transition: transform 0.3s;
-        }
-
-        .menu-header.collapsed::after {
-            transform: rotate(-90deg);
-        }
-
-        .menu-content {
-            max-height: 300px;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-            padding: 0 12px;
-        }
-
-        .menu-content.collapsed {
-            max-height: 0;
-            padding: 0 12px;
-        }
     </style>
 </head>
 <body id="mainBody">
-<div class="container" id="mainContainer">
-    <!-- El contenido se actualizará dinámicamente según emergencia -->
-</div>
+<div class="container" id="mainContainer"></div>
 
 <script>
-    // ==================== CONFIGURACIÓN HiveMQ ====================
     const MQTT_CONFIG = {
         broker: "wss://fce01a048733432a9eae2f8d8454ef46.s1.eu.hivemq.cloud:8884/mqtt",
         username: "prueba",
@@ -391,7 +353,6 @@
     let emergenciaActiva = false;
     let menuAbierto = true;
 
-    // ==================== FUNCIONES DE UI ====================
     function renderNormal() {
         document.getElementById('mainBody').classList.remove('emergencia');
         document.getElementById('mainContainer').innerHTML = `
@@ -406,8 +367,6 @@
                     <span>🖥️ ESP32</span>
                     <span id="esp32StatusText">Conectando...</span>
                 </div>
-
-                <!-- Menú de control -->
                 <div class="menu-sensores">
                     <div class="menu-header" onclick="toggleMenu()">🔧 CONTROL SENSORES EXTERNOS</div>
                     <div class="menu-content" id="menuContent">
@@ -429,13 +388,11 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="porton-visual">
                     <div class="track"></div>
                     <div class="puerta" id="puertaAnimada">🚪</div>
                 </div>
                 <div class="estado-texto" id="estadoTexto">Cargando...</div>
-
                 <div class="sensores-grid">
                     <div class="sensor-box" id="sensorAbiertoBox">
                         <div class="sensor-icon">🔓</div>
@@ -448,7 +405,6 @@
                         <div id="sensorCerradoVal">⚪</div>
                     </div>
                 </div>
-
                 <div class="sensores-grid">
                     <div class="sensor-box" id="fotoBox">
                         <div class="sensor-icon">📷</div>
@@ -461,13 +417,11 @@
                         <div id="movVal">⚪</div>
                     </div>
                 </div>
-
                 <div class="sensor-box" id="autoBox" style="margin-bottom: 16px;">
                     <div class="sensor-icon">🤖</div>
                     <div>MODO AUTOMÁTICO</div>
                     <div id="autoVal">⚪</div>
                 </div>
-
                 <div class="botonera">
                     <button class="btn btn-abrir" id="btnAbrir">🔓 ABRIR</button>
                     <button class="btn btn-cerrar" id="btnCerrar">🔒 CERRAR</button>
@@ -477,20 +431,15 @@
                     <button class="btn btn-secundario" id="btnToggleFoto">📷 Toggle Foto</button>
                     <button class="btn btn-secundario" id="btnToggleMov">🚶 Toggle Mov</button>
                 </div>
-
                 <div class="info-footer">
                     <span class="badge">🌍 Control desde cualquier lugar</span>
                     <span class="badge">🔒 Sin abrir puertos</span>
                     <span class="badge">📡 Tiempo real</span>
                     <div id="timestamp" style="margin-top: 8px;"></div>
-                    <div id="localAccess" style="margin-top: 8px; font-size: 10px;">
-                        🏠 Acceso local: <strong>http://192.168.1.200</strong>
-                    </div>
+                    <div id="localAccess" style="margin-top: 8px; font-size: 10px;">🏠 Acceso local: <strong>http://192.168.1.200</strong></div>
                 </div>
             </div>
         `;
-        
-        // Re-asignar eventos después de renderizar
         setTimeout(() => {
             if (document.getElementById('btnAbrir')) document.getElementById('btnAbrir').onclick = () => sendCommand("ABRIR");
             if (document.getElementById('btnCerrar')) document.getElementById('btnCerrar').onclick = () => sendCommand("CERRAR");
@@ -513,11 +462,10 @@
                 <button class="btn" onclick="location.reload()">🔄 Actualizar ahora</button>
             </div>
         `;
-        
         let segundos = 3;
-        const contador = document.getElementById('contador');
         const intervalo = setInterval(() => {
             segundos--;
+            const contador = document.getElementById('contador');
             if (contador) contador.innerHTML = `Recargando en ${segundos} segundos...`;
             if (segundos <= 0) {
                 clearInterval(intervalo);
@@ -540,19 +488,10 @@
         }
     }
 
-    function toggleSensor(sensor) {
-        sendCommand(sensor === 'foto' ? "TOGGLE_FOTO" : "TOGGLE_MOV");
-    }
+    function toggleSensor(sensor) { sendCommand(sensor === 'foto' ? "TOGGLE_FOTO" : "TOGGLE_MOV"); }
+    function toggleModoAuto() { sendCommand("TOGGLE_AUTO"); }
+    function toggleBotonFisico() { sendCommand("TOGGLE_BOTON"); }
 
-    function toggleModoAuto() {
-        sendCommand("TOGGLE_AUTO");
-    }
-
-    function toggleBotonFisico() {
-        sendCommand("TOGGLE_BOTON");
-    }
-
-    // ==================== FUNCIONES DE ACTUALIZACIÓN ====================
     function actualizarReloj() {
         const relojDiv = document.getElementById('reloj');
         if (relojDiv) {
@@ -596,7 +535,6 @@
         const textoDiv = document.getElementById('estadoTexto');
         const puerta = document.getElementById('puertaAnimada');
         if (!textoDiv || !puerta) return;
-        
         if (estado === "ABIERTO") {
             textoDiv.innerHTML = '✅ PORTÓN ABIERTO';
             textoDiv.className = 'estado-texto abierto';
@@ -617,7 +555,6 @@
         const sensorCerradoVal = document.getElementById('sensorCerradoVal');
         const abiertoBox = document.getElementById('sensorAbiertoBox');
         const cerradoBox = document.getElementById('sensorCerradoBox');
-        
         if (sensorAbiertoVal && abiertoBox) {
             if (data.abierto) {
                 sensorAbiertoVal.innerHTML = '✅ ACTIVADO';
@@ -627,7 +564,6 @@
                 abiertoBox.classList.remove('activo');
             }
         }
-        
         if (sensorCerradoVal && cerradoBox) {
             if (data.cerrado) {
                 sensorCerradoVal.innerHTML = '✅ ACTIVADO';
@@ -662,7 +598,6 @@
                 toggleFoto.classList.remove('active');
             }
         }
-        
         if (data.movHabilitado !== undefined && toggleMov) {
             if (data.movHabilitado) {
                 if (movVal) movVal.innerHTML = '✅ HABILITADO';
@@ -674,7 +609,6 @@
                 toggleMov.classList.remove('active');
             }
         }
-        
         if (data.modoAuto !== undefined && toggleAuto) {
             if (data.modoAuto) {
                 if (autoVal) autoVal.innerHTML = '✅ ACTIVADO';
@@ -686,13 +620,9 @@
                 toggleAuto.classList.remove('active');
             }
         }
-        
         if (data.botonFisicoHabilitado !== undefined && toggleBoton) {
-            if (data.botonFisicoHabilitado) {
-                toggleBoton.classList.add('active');
-            } else {
-                toggleBoton.classList.remove('active');
-            }
+            if (data.botonFisicoHabilitado) toggleBoton.classList.add('active');
+            else toggleBoton.classList.remove('active');
         }
     }
 
@@ -713,7 +643,6 @@
         }
     }
 
-    // ==================== MQTT ====================
     function connectMQTT() {
         const options = {
             username: MQTT_CONFIG.username,
@@ -723,35 +652,25 @@
             keepalive: 60,
             reconnectPeriod: 5000
         };
-
         client = mqtt.connect(MQTT_CONFIG.broker, options);
-
         client.on('connect', () => {
             console.log("✅ Conectado a HiveMQ");
             connected = true;
             updateConnectionStatus(true);
-            
             client.subscribe(MQTT_CONFIG.estadoTopic);
             client.subscribe(MQTT_CONFIG.sensoresTopic);
             client.subscribe(MQTT_CONFIG.heartbeatTopic);
-            
-            setTimeout(() => {
-                sendCommand("ESTADO");
-            }, 500);
+            setTimeout(() => { sendCommand("ESTADO"); }, 500);
         });
-
         client.on('message', (topic, message) => {
             const payload = message.toString();
             console.log("📨 Recibido:", topic, payload);
-            
             if (topic === MQTT_CONFIG.heartbeatTopic) {
                 esp32Online = true;
                 ultimoHeartbeat = Date.now();
                 updateEsp32Status(true);
                 return;
             }
-            
-            // Detectar emergencia
             if (payload.includes('"emergenciaActiva":true')) {
                 if (!emergenciaActiva) {
                     emergenciaActiva = true;
@@ -759,19 +678,12 @@
                 }
                 return;
             }
-            
             if (emergenciaActiva && payload.includes('"emergenciaActiva":false')) {
                 emergenciaActiva = false;
                 renderNormal();
-                // Reconectar después de renderizar
-                setTimeout(() => {
-                    if (client && !connected) {
-                        connectMQTT();
-                    }
-                }, 500);
+                setTimeout(() => { if (client && !connected) connectMQTT(); }, 500);
                 return;
             }
-            
             try {
                 const data = JSON.parse(payload);
                 if (topic === MQTT_CONFIG.estadoTopic) {
@@ -781,27 +693,13 @@
                     updateSensores(data);
                 }
                 const timestampDiv = document.getElementById('timestamp');
-                if (timestampDiv) {
-                    timestampDiv.innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
-                }
-            } catch(e) {
-                console.warn("Error parseando JSON:", payload);
-            }
+                if (timestampDiv) timestampDiv.innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
+            } catch(e) { console.warn("Error parseando JSON:", payload); }
         });
-
-        client.on('error', (err) => {
-            console.error("❌ MQTT Error:", err);
-            connected = false;
-            updateConnectionStatus(false);
-        });
-
-        client.on('offline', () => {
-            connected = false;
-            updateConnectionStatus(false);
-        });
+        client.on('error', (err) => { console.error("❌ MQTT Error:", err); connected = false; updateConnectionStatus(false); });
+        client.on('offline', () => { connected = false; updateConnectionStatus(false); });
     }
 
-    // ==================== VERIFICAR HEARTBEAT ====================
     setInterval(() => {
         if (ultimoHeartbeat > 0 && Date.now() - ultimoHeartbeat > 30000) {
             esp32Online = false;
@@ -809,11 +707,9 @@
         }
     }, 5000);
 
-    // ==================== INICIO ====================
     function init() {
         renderNormal();
         connectMQTT();
-        
         setInterval(() => {
             if (!emergenciaActiva && document.getElementById('timestamp') && !document.getElementById('timestamp').innerHTML.includes("Comando")) {
                 const ts = document.getElementById('timestamp');
@@ -821,7 +717,6 @@
             }
         }, 10000);
     }
-    
     window.onload = init;
 </script>
 </body>
