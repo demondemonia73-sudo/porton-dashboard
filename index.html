@@ -4,808 +4,138 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Portón Automático - Control Remoto</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            min-height: 100vh;
-            padding: 16px;
-        }
-
-        body.emergencia {
-            background: #8b0000;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: white;
-            border-radius: 32px;
-            padding: 24px;
-            margin-bottom: 16px;
-            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.3);
-        }
-
-        .emergencia-card {
-            background: #a00000;
-            color: white;
-            text-align: center;
-        }
-
-        .emergencia-card h1 {
-            color: white;
-            font-size: 48px;
-        }
-
-        .emergencia-texto {
-            font-size: 24px;
-            margin: 20px 0;
-            animation: parpadeo 1s infinite;
-        }
-
-        @keyframes parpadeo {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .emergencia-card .btn {
-            background: white;
-            color: #8b0000;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            cursor: pointer;
-        }
-
-        .contador {
-            font-size: 14px;
-            margin-top: 20px;
-        }
-
-        h1 {
-            font-size: 24px;
-            text-align: center;
-            color: #1e293b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .badge-cloud {
-            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
-            color: white;
-            font-size: 10px;
-            padding: 4px 10px;
-            border-radius: 40px;
-            font-weight: normal;
-        }
-
-        .reloj {
-            background: #f1f5f9;
-            border-radius: 20px;
-            padding: 12px 16px;
-            margin: 16px 0;
-            text-align: center;
-            font-family: monospace;
-            font-size: 18px;
-            font-weight: bold;
-            color: #1e293b;
-        }
-
-        .status-bar {
-            background: #f1f5f9;
-            border-radius: 20px;
-            padding: 12px 16px;
-            margin: 16px 0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 13px;
-            font-family: monospace;
-        }
-
-        .status-led {
-            width: 10px;
-            height: 10px;
-            border-radius: 10px;
-            display: inline-block;
-            margin-right: 8px;
-        }
-
-        .connected {
-            color: #10b981;
-        }
-        .disconnected {
-            color: #ef4444;
-        }
-
-        .porton-visual {
-            background: #334155;
-            border-radius: 24px;
-            padding: 24px 16px;
-            margin: 16px 0;
-            position: relative;
-        }
-
-        .track {
-            background: #1e293b;
-            height: 6px;
-            border-radius: 3px;
-            margin: 40px 0;
-            position: relative;
-        }
-
-        .puerta {
-            position: absolute;
-            width: 80px;
-            height: 90px;
-            background: linear-gradient(145deg, #475569, #1e293b);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            transition: left 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-            top: -42px;
-        }
-
-        .estado-texto {
-            text-align: center;
-            font-weight: 700;
-            font-size: 18px;
-            padding: 12px;
-            border-radius: 60px;
-            margin: 16px 0;
-        }
-
-        .abierto { background: #d1fae5; color: #065f46; }
-        .cerrado { background: #fee2e2; color: #991b1b; }
-        .intermedio { background: #fed7aa; color: #9a3412; }
-
-        .sensores-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin: 16px 0;
-        }
-
-        .sensor-box {
-            background: #f8fafc;
-            border-radius: 20px;
-            padding: 12px;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .sensor-box.activo {
-            background: #dcfce7;
-            border-left: 4px solid #22c55e;
-        }
-
-        .sensor-icon {
-            font-size: 28px;
-            margin-bottom: 6px;
-        }
-
-        .botonera {
-            display: flex;
-            gap: 12px;
-            margin: 20px 0;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 14px;
-            font-size: 16px;
-            font-weight: bold;
-            border: none;
-            border-radius: 60px;
-            color: white;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-
-        .btn:active { transform: scale(0.97); }
-        .btn-abrir { background: linear-gradient(135deg, #22c55e, #15803d); }
-        .btn-cerrar { background: linear-gradient(135deg, #ef4444, #b91c1c); }
-        .btn-secundario { background: linear-gradient(135deg, #3b82f6, #1e40af); }
-
-        .info-footer {
-            background: #f1f5f9;
-            border-radius: 20px;
-            padding: 12px;
-            font-size: 11px;
-            color: #475569;
-            text-align: center;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #e2e8f0;
-            padding: 4px 10px;
-            border-radius: 40px;
-            margin: 4px;
-            font-size: 10px;
-        }
-
-        .menu-sensores {
-            background: #f0f0f0;
-            border-radius: 10px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .menu-header {
-            background: #2b5876;
-            color: #fff;
-            padding: 10px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .menu-header:hover {
-            background: #1e3a5f;
-        }
-
-        .menu-header::after {
-            content: '▼';
-            font-size: 10px;
-            transition: transform 0.3s;
-        }
-
-        .menu-header.collapsed::after {
-            transform: rotate(-90deg);
-        }
-
-        .menu-content {
-            max-height: 300px;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-            padding: 0 12px;
-        }
-
-        .menu-content.collapsed {
-            max-height: 0;
-            padding: 0 12px;
-        }
-
-        .toggle-switch {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin: 10px 0;
-        }
-
-        .toggle-label {
-            font-weight: bold;
-            color: #4a5568;
-            font-size: 13px;
-        }
-
-        .toggle-button {
-            width: 50px;
-            height: 26px;
-            background: #cbd5e0;
-            border-radius: 30px;
-            position: relative;
-            cursor: pointer;
-            transition: 0.3s;
-            display: inline-block;
-        }
-
-        .toggle-button.active {
-            background: #48bb78;
-        }
-
-        .toggle-button::after {
-            content: '';
-            width: 22px;
-            height: 22px;
-            background: white;
-            border-radius: 50%;
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            transition: 0.3s;
-        }
-
-        .toggle-button.active::after {
-            left: 26px;
-        }
-
-        /* ALERTA DE EMERGENCIA */
-        .alerta-emergencia {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #e74c3c;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-weight: bold;
-            z-index: 1000;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            animation: slideDown 0.5s ease;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .alerta-emergencia.oculto {
-            display: none;
-        }
-
-        @keyframes slideDown {
-            from {
-                top: -50px;
-                opacity: 0;
-            }
-            to {
-                top: 20px;
-                opacity: 1;
-            }
-        }
-
-        .alerta-emergencia button {
-            background: white;
-            color: #e74c3c;
-            border: none;
-            border-radius: 30px;
-            padding: 4px 12px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-    </style>
+    <script src="config.js"></script>
+    <script src="mqtt-client.js"></script>
+    <script src="ui.js"></script>
+    <script src="emergencia.js"></script>
 </head>
-<body id="mainBody">
-<div id="alertaEmergencia" class="alerta-emergencia oculto">
-    🛑 <span id="alertaMensaje">EMERGENCIA ACTIVADA</span>
-    <button onclick="cerrarAlerta()">✕</button>
+<body>
+<div id="emergenciaOverlay" style="display:none" class="emergencia-overlay">
+    <div class="emergencia-card">
+        <h1>🛑 EMERGENCIA 🛑</h1>
+        <div class="emergencia-texto">PARADA DE EMERGENCIA ACTIVADA</div>
+        <p>🔒 Chapa eléctrica activada</p>
+        <p>⛔ Motor desactivado</p>
+        <p>🔌 Sensores externos desactivados</p>
+        <button class="btn" onclick="location.reload()">🔄 Actualizar</button>
+    </div>
 </div>
-<div class="container" id="mainContainer"></div>
+
+<div class="container" id="mainContainer">
+    <div class="card">
+        <h1>🚪 PORTÓN AUTOMÁTICO</h1>
+        <div class="ip">🔒 192.168.1.200</div>
+        
+        <!-- Reloj -->
+        <div class="reloj" id="reloj">--/--/---- --:--:--</div>
+        
+        <!-- Estados -->
+        <div class="status-bar">
+            <span>🔌 HiveMQ Cloud</span>
+            <span id="statusText">Conectando...</span>
+        </div>
+        <div class="status-bar">
+            <span>🖥️ ESP32</span>
+            <span id="esp32StatusText">Conectando...</span>
+        </div>
+        
+        <!-- Menú control sensores -->
+        <div class="menu-sensores">
+            <div class="menu-header" onclick="toggleMenu()">⚙️ CONTROL SENSORES EXTERNOS</div>
+            <div class="menu-content" id="menuContent">
+                <div class="toggle-switch">
+                    <div class="toggle-label"><span>📷</span> Fotoeléctrica</div>
+                    <div class="toggle" id="toggleFoto" onclick="toggleSensor('foto')"></div>
+                </div>
+                <div class="toggle-switch">
+                    <div class="toggle-label"><span>🚶</span> Sensor Movimiento</div>
+                    <div class="toggle" id="toggleMov" onclick="toggleSensor('mov')"></div>
+                </div>
+                <div class="toggle-switch">
+                    <div class="toggle-label"><span>🤖</span> Modo Automático</div>
+                    <div class="toggle" id="toggleAuto" onclick="toggleModoAuto()"></div>
+                </div>
+                <div class="toggle-switch">
+                    <div class="toggle-label"><span>🎮</span> Botón Físico</div>
+                    <div class="toggle" id="toggleBoton" onclick="toggleBotonFisico()"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Portón animado -->
+        <div class="porton-area">
+            <div class="track"></div>
+            <div class="puerta" id="puerta">🚪</div>
+        </div>
+        <div class="estado-texto" id="estadoPorton">Cargando...</div>
+        
+        <!-- Sensores finales -->
+        <div class="sensores-grid">
+            <div class="sensor-box" id="sensorAbiertoBox">
+                <div class="sensor-icon">🔓</div>
+                <div>FINAL ABIERTO</div>
+                <div id="sensorAbiertoVal">⚪</div>
+            </div>
+            <div class="sensor-box" id="sensorCerradoBox">
+                <div class="sensor-icon">🔒</div>
+                <div>FINAL CERRADO</div>
+                <div id="sensorCerradoVal">⚪</div>
+            </div>
+        </div>
+        
+        <!-- Estado sensores externos -->
+        <div class="sensores-grid">
+            <div class="sensor-box" id="fotoBox">
+                <div class="sensor-icon">📷</div>
+                <div>FOTOELÉCTRICA</div>
+                <div id="fotoVal">⚪</div>
+            </div>
+            <div class="sensor-box" id="movBox">
+                <div class="sensor-icon">🚶</div>
+                <div>MOVIMIENTO</div>
+                <div id="movVal">⚪</div>
+            </div>
+        </div>
+        
+        <!-- Modo automático -->
+        <div class="sensor-box" id="autoBox">
+            <div class="sensor-icon">🤖</div>
+            <div>MODO AUTOMÁTICO</div>
+            <div id="autoVal">⚪</div>
+        </div>
+        
+        <!-- Botones principales -->
+        <div class="botonera">
+            <button class="btn btn-abrir" id="btnAbrir">🔓 ABRIR</button>
+            <button class="btn btn-cerrar" id="btnCerrar">🔒 CERRAR</button>
+        </div>
+        <div class="botonera">
+            <button class="btn btn-secundario" id="btnToggleAuto">🤖 Toggle Auto</button>
+            <button class="btn btn-secundario" id="btnToggleFoto">📷 Toggle Foto</button>
+            <button class="btn btn-secundario" id="btnToggleMov">🚶 Toggle Mov</button>
+        </div>
+        
+        <!-- Footer -->
+        <div class="info-footer">
+            <span class="badge">🌍 Control remoto MQTT</span>
+            <span class="badge">🔒 Sin abrir puertos</span>
+            <span class="badge">📡 Tiempo real</span>
+            <div id="timestamp"></div>
+            <div class="local-access">🏠 Acceso local: <strong>http://192.168.1.200</strong></div>
+        </div>
+    </div>
+</div>
 
 <script>
-    const MQTT_CONFIG = {
-        broker: "wss://fce01a048733432a9eae2f8d8454ef46.s1.eu.hivemq.cloud:8884/mqtt",
-        username: "prueba",
-        password: "Prueba2026",
-        comandosTopic: "porton/comandos",
-        estadoTopic: "porton/estado",
-        sensoresTopic: "porton/sensores",
-        heartbeatTopic: "porton/heartbeat",
-        alertaTopic: "porton/alerta"
+    // Inicialización después de cargar los módulos
+    window.onload = function() {
+        iniciarReloj();
+        conectarMQTT();
+        configurarBotones();
+        iniciarHeartbeatCheck();
     };
-
-    let client = null;
-    let connected = false;
-    let esp32Online = false;
-    let ultimoHeartbeat = 0;
-    let emergenciaActiva = false;
-    let menuAbierto = true;
-
-    // Funciones de alerta
-    function mostrarAlerta(mensaje, esEmergencia = true) {
-        const alerta = document.getElementById('alertaEmergencia');
-        const alertaMensaje = document.getElementById('alertaMensaje');
-        alertaMensaje.innerHTML = mensaje;
-        alerta.classList.remove('oculto');
-        
-        if (esEmergencia) {
-            renderEmergencia();
-        } else {
-            setTimeout(() => {
-                alerta.classList.add('oculto');
-            }, 3000);
-        }
-    }
-
-    function cerrarAlerta() {
-        document.getElementById('alertaEmergencia').classList.add('oculto');
-    }
-
-    function renderNormal() {
-        document.getElementById('mainBody').classList.remove('emergencia');
-        document.getElementById('mainContainer').innerHTML = `
-            <div class="card">
-                <h1>🚪 PORTÓN <span class="badge-cloud">MQTT CLOUD</span></h1>
-                <div class="reloj" id="reloj">--/--/---- --:--:--</div>
-                <div class="status-bar">
-                    <span>🔌 HiveMQ Cloud</span>
-                    <span id="statusText">Conectando...</span>
-                </div>
-                <div class="status-bar">
-                    <span>🖥️ ESP32</span>
-                    <span id="esp32StatusText">Conectando...</span>
-                </div>
-                <div class="menu-sensores">
-                    <div class="menu-header" onclick="toggleMenu()">🔧 CONTROL SENSORES EXTERNOS</div>
-                    <div class="menu-content" id="menuContent">
-                        <div class="toggle-switch">
-                            <span class="toggle-label">📷 Fotoeléctrica</span>
-                            <div class="toggle-button" id="toggleFoto" onclick="toggleSensor('foto')"></div>
-                        </div>
-                        <div class="toggle-switch">
-                            <span class="toggle-label">🚶 Sensor Movimiento</span>
-                            <div class="toggle-button" id="toggleMov" onclick="toggleSensor('mov')"></div>
-                        </div>
-                        <div class="toggle-switch">
-                            <span class="toggle-label">🤖 Modo Automático</span>
-                            <div class="toggle-button" id="toggleAuto" onclick="toggleModoAuto()"></div>
-                        </div>
-                        <div class="toggle-switch">
-                            <span class="toggle-label">🎮 Botón Físico</span>
-                            <div class="toggle-button" id="toggleBoton" onclick="toggleBotonFisico()"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="porton-visual">
-                    <div class="track"></div>
-                    <div class="puerta" id="puertaAnimada">🚪</div>
-                </div>
-                <div class="estado-texto" id="estadoTexto">Cargando...</div>
-                <div class="sensores-grid">
-                    <div class="sensor-box" id="sensorAbiertoBox">
-                        <div class="sensor-icon">🔓</div>
-                        <div>FINAL ABIERTO</div>
-                        <div id="sensorAbiertoVal">⚪</div>
-                    </div>
-                    <div class="sensor-box" id="sensorCerradoBox">
-                        <div class="sensor-icon">🔒</div>
-                        <div>FINAL CERRADO</div>
-                        <div id="sensorCerradoVal">⚪</div>
-                    </div>
-                </div>
-                <div class="sensores-grid">
-                    <div class="sensor-box" id="fotoBox">
-                        <div class="sensor-icon">📷</div>
-                        <div>FOTOELÉCTRICA</div>
-                        <div id="fotoVal">⚪</div>
-                    </div>
-                    <div class="sensor-box" id="movBox">
-                        <div class="sensor-icon">🚶</div>
-                        <div>MOVIMIENTO</div>
-                        <div id="movVal">⚪</div>
-                    </div>
-                </div>
-                <div class="sensor-box" id="autoBox" style="margin-bottom: 16px;">
-                    <div class="sensor-icon">🤖</div>
-                    <div>MODO AUTOMÁTICO</div>
-                    <div id="autoVal">⚪</div>
-                </div>
-                <div class="botonera">
-                    <button class="btn btn-abrir" id="btnAbrir">🔓 ABRIR</button>
-                    <button class="btn btn-cerrar" id="btnCerrar">🔒 CERRAR</button>
-                </div>
-                <div class="botonera">
-                    <button class="btn btn-secundario" id="btnToggleAuto">🤖 Toggle Auto</button>
-                    <button class="btn btn-secundario" id="btnToggleFoto">📷 Toggle Foto</button>
-                    <button class="btn btn-secundario" id="btnToggleMov">🚶 Toggle Mov</button>
-                </div>
-                <div class="info-footer">
-                    <span class="badge">🌍 Control desde cualquier lugar</span>
-                    <span class="badge">🔒 Sin abrir puertos</span>
-                    <span class="badge">📡 Tiempo real</span>
-                    <div id="timestamp" style="margin-top: 8px;"></div>
-                    <div id="localAccess" style="margin-top: 8px; font-size: 10px;">🏠 Acceso local: <strong>http://192.168.1.200</strong></div>
-                </div>
-            </div>
-        `;
-        setTimeout(() => {
-            if (document.getElementById('btnAbrir')) document.getElementById('btnAbrir').onclick = () => sendCommand("ABRIR");
-            if (document.getElementById('btnCerrar')) document.getElementById('btnCerrar').onclick = () => sendCommand("CERRAR");
-            if (document.getElementById('btnToggleAuto')) document.getElementById('btnToggleAuto').onclick = () => sendCommand("TOGGLE_AUTO");
-            if (document.getElementById('btnToggleFoto')) document.getElementById('btnToggleFoto').onclick = () => sendCommand("TOGGLE_FOTO");
-            if (document.getElementById('btnToggleMov')) document.getElementById('btnToggleMov').onclick = () => sendCommand("TOGGLE_MOV");
-        }, 100);
-    }
-
-    function renderEmergencia() {
-        document.getElementById('mainBody').classList.add('emergencia');
-        document.getElementById('mainContainer').innerHTML = `
-            <div class="card emergencia-card">
-                <h1>🛑 EMERGENCIA 🛑</h1>
-                <div class="emergencia-texto">PARADA DE EMERGENCIA ACTIVADA</div>
-                <p>🔒 Chapa eléctrica activada</p>
-                <p>⛔ Motor desactivado</p>
-                <p>🔌 Sensores externos desactivados</p>
-                <div class="contador" id="contador">Recargando en 3 segundos...</div>
-                <button class="btn" onclick="location.reload()">🔄 Actualizar ahora</button>
-            </div>
-        `;
-        let segundos = 3;
-        const intervalo = setInterval(() => {
-            segundos--;
-            const contador = document.getElementById('contador');
-            if (contador) contador.innerHTML = `Recargando en ${segundos} segundos...`;
-            if (segundos <= 0) {
-                clearInterval(intervalo);
-                location.reload();
-            }
-        }, 1000);
-        setTimeout(() => { location.reload(); }, 3000);
-    }
-
-    function toggleMenu() {
-        menuAbierto = !menuAbierto;
-        let menu = document.getElementById('menuContent');
-        let header = document.querySelector('.menu-header');
-        if (menuAbierto) {
-            menu.classList.remove('collapsed');
-            header.classList.remove('collapsed');
-        } else {
-            menu.classList.add('collapsed');
-            header.classList.add('collapsed');
-        }
-    }
-
-    function toggleSensor(sensor) { sendCommand(sensor === 'foto' ? "TOGGLE_FOTO" : "TOGGLE_MOV"); }
-    function toggleModoAuto() { sendCommand("TOGGLE_AUTO"); }
-    function toggleBotonFisico() { sendCommand("TOGGLE_BOTON"); }
-
-    function actualizarReloj() {
-        const relojDiv = document.getElementById('reloj');
-        if (relojDiv) {
-            const ahora = new Date();
-            const hora = ahora.getHours().toString().padStart(2, '0');
-            const minutos = ahora.getMinutes().toString().padStart(2, '0');
-            const segundos = ahora.getSeconds().toString().padStart(2, '0');
-            const fecha = ahora.toLocaleDateString('es-ES');
-            relojDiv.innerHTML = `${fecha} ${hora}:${minutos}:${segundos}`;
-        }
-    }
-    setInterval(actualizarReloj, 1000);
-
-    function updateConnectionStatus(connectedFlag) {
-        const statusText = document.getElementById('statusText');
-        if (statusText) {
-            if (connectedFlag) {
-                statusText.innerHTML = '<span class="status-led" style="background:#10b981;"></span> Conectado';
-                statusText.classList.add('connected');
-            } else {
-                statusText.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
-                statusText.classList.remove('connected');
-            }
-        }
-    }
-
-    function updateEsp32Status(online) {
-        const esp32Text = document.getElementById('esp32StatusText');
-        if (esp32Text) {
-            if (online) {
-                esp32Text.innerHTML = '<span class="status-led" style="background:#10b981;"></span> En línea';
-                esp32Text.classList.add('connected');
-            } else {
-                esp32Text.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
-                esp32Text.classList.remove('connected');
-            }
-        }
-    }
-
-    function updatePortonUI(estado) {
-        const textoDiv = document.getElementById('estadoTexto');
-        const puerta = document.getElementById('puertaAnimada');
-        if (!textoDiv || !puerta) return;
-        if (estado === "ABIERTO") {
-            textoDiv.innerHTML = '✅ PORTÓN ABIERTO';
-            textoDiv.className = 'estado-texto abierto';
-            puerta.style.left = 'calc(100% - 90px)';
-        } else if (estado === "CERRADO") {
-            textoDiv.innerHTML = '🔒 PORTÓN CERRADO';
-            textoDiv.className = 'estado-texto cerrado';
-            puerta.style.left = '12px';
-        } else {
-            textoDiv.innerHTML = '⚠️ PORTÓN ENTREABIERTO';
-            textoDiv.className = 'estado-texto intermedio';
-            puerta.style.left = 'calc(50% - 45px)';
-        }
-    }
-
-    function updateSensores(data) {
-        const sensorAbiertoVal = document.getElementById('sensorAbiertoVal');
-        const sensorCerradoVal = document.getElementById('sensorCerradoVal');
-        const abiertoBox = document.getElementById('sensorAbiertoBox');
-        const cerradoBox = document.getElementById('sensorCerradoBox');
-        if (sensorAbiertoVal && abiertoBox) {
-            if (data.abierto) {
-                sensorAbiertoVal.innerHTML = '✅ ACTIVADO';
-                abiertoBox.classList.add('activo');
-            } else {
-                sensorAbiertoVal.innerHTML = '⚪ INACTIVO';
-                abiertoBox.classList.remove('activo');
-            }
-        }
-        if (sensorCerradoVal && cerradoBox) {
-            if (data.cerrado) {
-                sensorCerradoVal.innerHTML = '✅ ACTIVADO';
-                cerradoBox.classList.add('activo');
-            } else {
-                sensorCerradoVal.innerHTML = '⚪ INACTIVO';
-                cerradoBox.classList.remove('activo');
-            }
-        }
-    }
-
-    function updateConfiguracion(data) {
-        const fotoVal = document.getElementById('fotoVal');
-        const movVal = document.getElementById('movVal');
-        const autoVal = document.getElementById('autoVal');
-        const fotoBox = document.getElementById('fotoBox');
-        const movBox = document.getElementById('movBox');
-        const autoBox = document.getElementById('autoBox');
-        const toggleFoto = document.getElementById('toggleFoto');
-        const toggleMov = document.getElementById('toggleMov');
-        const toggleAuto = document.getElementById('toggleAuto');
-        const toggleBoton = document.getElementById('toggleBoton');
-        
-        if (data.fotoHabilitado !== undefined && toggleFoto) {
-            if (data.fotoHabilitado) {
-                if (fotoVal) fotoVal.innerHTML = '✅ HABILITADO';
-                if (fotoBox) fotoBox.classList.add('activo');
-                toggleFoto.classList.add('active');
-            } else {
-                if (fotoVal) fotoVal.innerHTML = '⚪ DESHABILITADO';
-                if (fotoBox) fotoBox.classList.remove('activo');
-                toggleFoto.classList.remove('active');
-            }
-        }
-        if (data.movHabilitado !== undefined && toggleMov) {
-            if (data.movHabilitado) {
-                if (movVal) movVal.innerHTML = '✅ HABILITADO';
-                if (movBox) movBox.classList.add('activo');
-                toggleMov.classList.add('active');
-            } else {
-                if (movVal) movVal.innerHTML = '⚪ DESHABILITADO';
-                if (movBox) movBox.classList.remove('activo');
-                toggleMov.classList.remove('active');
-            }
-        }
-        if (data.modoAuto !== undefined && toggleAuto) {
-            if (data.modoAuto) {
-                if (autoVal) autoVal.innerHTML = '✅ ACTIVADO';
-                if (autoBox) autoBox.classList.add('activo');
-                toggleAuto.classList.add('active');
-            } else {
-                if (autoVal) autoVal.innerHTML = '⚪ DESACTIVADO';
-                if (autoBox) autoBox.classList.remove('activo');
-                toggleAuto.classList.remove('active');
-            }
-        }
-        if (data.botonFisicoHabilitado !== undefined && toggleBoton) {
-            if (data.botonFisicoHabilitado) toggleBoton.classList.add('active');
-            else toggleBoton.classList.remove('active');
-        }
-    }
-
-    function sendCommand(cmd) {
-        if (!client || !connected) {
-            alert("⚠️ No hay conexión con HiveMQ. Revisa tu internet o credenciales.");
-            return;
-        }
-        client.publish(MQTT_CONFIG.comandosTopic, cmd);
-        const timestampDiv = document.getElementById('timestamp');
-        if (timestampDiv) {
-            timestampDiv.innerHTML = `📨 Comando "${cmd}" enviado a las ${new Date().toLocaleTimeString()}`;
-            setTimeout(() => {
-                if (timestampDiv && !timestampDiv.innerHTML.includes("Comando")) {
-                    timestampDiv.innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
-                }
-            }, 3000);
-        }
-    }
-
-    function connectMQTT() {
-        const options = {
-            username: MQTT_CONFIG.username,
-            password: MQTT_CONFIG.password,
-            clientId: "web_dashboard_" + Math.random().toString(16).substr(2, 8),
-            clean: true,
-            keepalive: 60,
-            reconnectPeriod: 5000
-        };
-        client = mqtt.connect(MQTT_CONFIG.broker, options);
-        client.on('connect', () => {
-            console.log("✅ Conectado a HiveMQ");
-            connected = true;
-            updateConnectionStatus(true);
-            client.subscribe(MQTT_CONFIG.estadoTopic);
-            client.subscribe(MQTT_CONFIG.sensoresTopic);
-            client.subscribe(MQTT_CONFIG.heartbeatTopic);
-            client.subscribe(MQTT_CONFIG.alertaTopic);
-            setTimeout(() => { sendCommand("ESTADO"); }, 500);
-        });
-        client.on('message', (topic, message) => {
-            const payload = message.toString();
-            console.log("📨 Recibido:", topic, payload);
-            
-            // HEARTBEAT
-            if (topic === MQTT_CONFIG.heartbeatTopic) {
-                esp32Online = true;
-                ultimoHeartbeat = Date.now();
-                updateEsp32Status(true);
-                return;
-            }
-            
-            // ALERTA DE EMERGENCIA
-            if (topic === MQTT_CONFIG.alertaTopic) {
-                if (payload === "EMERGENCIA_ACTIVADA") {
-                    mostrarAlerta("🛑 EMERGENCIA ACTIVADA - Chapa activada, motor desactivado", true);
-                } else if (payload === "EMERGENCIA_DESACTIVADA") {
-                    mostrarAlerta("✅ EMERGENCIA DESACTIVADA - Sistema恢复正常", false);
-                    emergenciaActiva = false;
-                    renderNormal();
-                }
-                return;
-            }
-            
-            // DETECTAR EMERGENCIA POR ESTADO
-            if (payload.includes('"emergenciaActiva":true')) {
-                if (!emergenciaActiva) {
-                    emergenciaActiva = true;
-                    renderEmergencia();
-                }
-                return;
-            }
-            
-            if (emergenciaActiva && payload.includes('"emergenciaActiva":false')) {
-                emergenciaActiva = false;
-                renderNormal();
-                setTimeout(() => { location.reload(); }, 1000);
-                return;
-            }
-            
-            try {
-                const data = JSON.parse(payload);
-                if (topic === MQTT_CONFIG.estadoTopic) {
-                    if (data.estado) updatePortonUI(data.estado);
-                    updateConfiguracion(data);
-                } else if (topic === MQTT_CONFIG.sensoresTopic) {
-                    updateSensores(data);
-                }
-                const timestampDiv = document.getElementById('timestamp');
-                if (timestampDiv) timestampDiv.innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
-            } catch(e) { console.warn("Error parseando JSON:", payload); }
-        });
-        client.on('error', (err) => { console.error("❌ MQTT Error:", err); connected = false; updateConnectionStatus(false); });
-        client.on('offline', () => { connected = false; updateConnectionStatus(false); });
-    }
-
-    setInterval(() => {
-        if (ultimoHeartbeat > 0 && Date.now() - ultimoHeartbeat > 30000) {
-            esp32Online = false;
-            updateEsp32Status(false);
-        }
-    }, 5000);
-
-    function init() {
-        renderNormal();
-        connectMQTT();
-        setInterval(() => {
-            if (!emergenciaActiva && document.getElementById('timestamp') && !document.getElementById('timestamp').innerHTML.includes("Comando")) {
-                const ts = document.getElementById('timestamp');
-                if (ts) ts.innerHTML = `🕐 Conectado: ${new Date().toLocaleTimeString()}`;
-            }
-        }, 10000);
-    }
-    window.onload = init;
 </script>
 </body>
 </html>
