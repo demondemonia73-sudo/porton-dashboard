@@ -12,7 +12,6 @@
     <script src="emergencia.js"></script>
 </head>
 <body>
-<!-- Pantalla de emergencia persistente -->
 <div id="emergenciaOverlay" style="display:none" class="emergencia-overlay">
     <div class="emergencia-card">
         <h1>🛑 EMERGENCIA 🛑</h1>
@@ -29,10 +28,8 @@
         <h1>🚪 PORTÓN AUTOMÁTICO</h1>
         <div class="ip">🔒 192.168.1.200</div>
         
-        <!-- Reloj -->
         <div class="reloj" id="reloj">--/--/---- --:--:--</div>
         
-        <!-- Estado de conexiones -->
         <div class="status-bar">
             <span>🔌 HiveMQ Cloud</span>
             <span id="statusText">Conectando...</span>
@@ -42,7 +39,6 @@
             <span id="esp32StatusText">Conectando...</span>
         </div>
         
-        <!-- Menú control sensores externos -->
         <div class="menu-sensores">
             <div class="menu-header" onclick="toggleMenu()">⚙️ CONTROL SENSORES EXTERNOS</div>
             <div class="menu-content" id="menuContent">
@@ -65,14 +61,12 @@
             </div>
         </div>
         
-        <!-- Portón animado -->
         <div class="porton-area">
             <div class="track"></div>
             <div class="puerta" id="puerta">🚪</div>
         </div>
         <div class="estado-texto" id="estadoPorton">Cargando...</div>
         
-        <!-- Sensores finales -->
         <div class="sensores-grid">
             <div class="sensor-box" id="sensorAbiertoBox">
                 <div class="sensor-icon">🔓</div>
@@ -86,7 +80,6 @@
             </div>
         </div>
         
-        <!-- Estado sensores externos -->
         <div class="sensores-grid">
             <div class="sensor-box" id="fotoBox">
                 <div class="sensor-icon">📷</div>
@@ -100,20 +93,17 @@
             </div>
         </div>
         
-        <!-- Modo automático -->
         <div class="sensor-box" id="autoBox">
             <div class="sensor-icon">🤖</div>
             <div>MODO AUTOMÁTICO</div>
             <div id="autoVal">⚪</div>
         </div>
         
-        <!-- Botones principales -->
         <div class="botonera">
             <button class="btn btn-abrir" id="btnAbrir">🔓 ABRIR</button>
             <button class="btn btn-cerrar" id="btnCerrar">🔒 CERRAR</button>
         </div>
         
-        <!-- Badges de estado -->
         <div class="badges">
             <span class="badge">✅ Pulso 300ms</span>
             <span class="badge">🔒 IP Fija</span>
@@ -123,7 +113,6 @@
             <span class="badge badge-mqtt" id="mqttBadge">🌍 MQTT: Conectando...</span>
         </div>
         
-        <!-- Footer -->
         <div class="footer">
             <div id="timestamp"></div>
             <div class="local-access">🏠 Acceso local: <strong>http://192.168.1.200</strong></div>
@@ -132,7 +121,6 @@
 </div>
 
 <script>
-    // Inicialización
     window.onload = function() {
         iniciarReloj();
         conectarMQTT();
