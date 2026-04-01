@@ -54,7 +54,6 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: 0.3s;
 }
 
 .emergencia-card {
@@ -64,7 +63,6 @@ h1 {
     padding: 40px;
     border-radius: 32px;
     max-width: 90%;
-    margin: 20px;
 }
 
 .emergencia-card h1 {
@@ -231,7 +229,6 @@ h1 {
     height: 6px;
     border-radius: 3px;
     margin: 35px 0;
-    position: relative;
 }
 .puerta {
     position: absolute;
@@ -306,25 +303,34 @@ h1 {
 .btn:active { transform: scale(0.97); }
 .btn-abrir { background: linear-gradient(135deg, #22c55e, #15803d); }
 .btn-cerrar { background: linear-gradient(135deg, #ef4444, #b91c1c); }
-.btn-secundario { background: linear-gradient(135deg, #3b82f6, #1e40af); }
 
-/* Info footer */
-.info-footer {
-    background: #f1f5f9;
-    border-radius: 20px;
-    padding: 14px;
-    font-size: 11px;
-    color: #475569;
-    text-align: center;
+/* Badges */
+.badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
 }
 .badge {
     display: inline-block;
     background: #e2e8f0;
     padding: 5px 12px;
     border-radius: 40px;
-    margin: 4px;
     font-size: 11px;
     font-weight: 600;
 }
-.local-access { margin-top: 12px; font-size: 10px; }
+.badge-chapa { background: #e67e22; color: white; }
+.badge-boton { background: #3498db; color: white; }
+.badge-emergencia { background: #e67e22; color: white; }
+.badge-mqtt { background: #9b59b6; color: white; }
+
+/* Footer */
+.footer {
+    text-align: center;
+    font-size: 11px;
+    color: #718096;
+    margin-top: 16px;
+}
+.local-access { margin-top: 8px; }
