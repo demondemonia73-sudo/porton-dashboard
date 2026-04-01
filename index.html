@@ -12,6 +12,7 @@
     <script src="emergencia.js"></script>
 </head>
 <body>
+<!-- Pantalla de emergencia persistente -->
 <div id="emergenciaOverlay" style="display:none" class="emergencia-overlay">
     <div class="emergencia-card">
         <h1>🛑 EMERGENCIA 🛑</h1>
@@ -23,7 +24,7 @@
     </div>
 </div>
 
-<div class="container" id="mainContainer">
+<div class="container">
     <div class="card">
         <h1>🚪 PORTÓN AUTOMÁTICO</h1>
         <div class="ip">🔒 192.168.1.200</div>
@@ -31,7 +32,7 @@
         <!-- Reloj -->
         <div class="reloj" id="reloj">--/--/---- --:--:--</div>
         
-        <!-- Estados -->
+        <!-- Estado de conexiones -->
         <div class="status-bar">
             <span>🔌 HiveMQ Cloud</span>
             <span id="statusText">Conectando...</span>
@@ -41,7 +42,7 @@
             <span id="esp32StatusText">Conectando...</span>
         </div>
         
-        <!-- Menú control sensores -->
+        <!-- Menú control sensores externos -->
         <div class="menu-sensores">
             <div class="menu-header" onclick="toggleMenu()">⚙️ CONTROL SENSORES EXTERNOS</div>
             <div class="menu-content" id="menuContent">
@@ -111,17 +112,19 @@
             <button class="btn btn-abrir" id="btnAbrir">🔓 ABRIR</button>
             <button class="btn btn-cerrar" id="btnCerrar">🔒 CERRAR</button>
         </div>
-        <div class="botonera">
-            <button class="btn btn-secundario" id="btnToggleAuto">🤖 Toggle Auto</button>
-            <button class="btn btn-secundario" id="btnToggleFoto">📷 Toggle Foto</button>
-            <button class="btn btn-secundario" id="btnToggleMov">🚶 Toggle Mov</button>
+        
+        <!-- Badges de estado -->
+        <div class="badges">
+            <span class="badge">✅ Pulso 300ms</span>
+            <span class="badge">🔒 IP Fija</span>
+            <span class="badge badge-chapa" id="chapaBadge">🔐 Chapa: OFF</span>
+            <span class="badge badge-boton" id="botonBadge">🎮 Botón: ON</span>
+            <span class="badge badge-emergencia" id="emergenciaBadge">🛑 Emergencia: OFF</span>
+            <span class="badge badge-mqtt" id="mqttBadge">🌍 MQTT: Conectando...</span>
         </div>
         
         <!-- Footer -->
-        <div class="info-footer">
-            <span class="badge">🌍 Control remoto MQTT</span>
-            <span class="badge">🔒 Sin abrir puertos</span>
-            <span class="badge">📡 Tiempo real</span>
+        <div class="footer">
             <div id="timestamp"></div>
             <div class="local-access">🏠 Acceso local: <strong>http://192.168.1.200</strong></div>
         </div>
@@ -129,7 +132,7 @@
 </div>
 
 <script>
-    // Inicialización después de cargar los módulos
+    // Inicialización
     window.onload = function() {
         iniciarReloj();
         conectarMQTT();
