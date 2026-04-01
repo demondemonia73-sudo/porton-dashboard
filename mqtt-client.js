@@ -1,4 +1,3 @@
-// ==================== CLIENTE MQTT ====================
 let client = null;
 let mqttConectado = false;
 let esp32Online = false;
@@ -41,6 +40,7 @@ function conectarMQTT() {
             return;
         }
         
+        // Detectar emergencia
         if (payload.includes('"emergenciaActiva":true')) {
             mostrarEmergencia(true);
             return;
