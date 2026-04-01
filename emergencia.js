@@ -1,4 +1,3 @@
-// ==================== EMERGENCIA ====================
 let emergenciaActivaLocal = false;
 
 function mostrarEmergencia(mostrar) {
