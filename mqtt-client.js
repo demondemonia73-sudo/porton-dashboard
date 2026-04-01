@@ -1,3 +1,4 @@
+// ==================== CLIENTE MQTT ====================
 let client = null;
 let mqttConectado = false;
 let esp32Online = false;
