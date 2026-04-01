@@ -1,4 +1,3 @@
-// ==================== CLIENTE MQTT ====================
 let client = null;
 let mqttConectado = false;
 let esp32Online = false;
@@ -25,7 +24,6 @@ function conectarMQTT() {
         client.subscribe(CONFIG.mqtt.topics.sensores);
         client.subscribe(CONFIG.mqtt.topics.heartbeat);
         
-        // Pedir estado actual
         setTimeout(() => {
             enviarComando("ESTADO");
         }, 500);
@@ -35,7 +33,6 @@ function conectarMQTT() {
         const payload = message.toString();
         console.log("📨 Recibido:", topic, payload);
         
-        // Heartbeat del ESP32
         if (topic === CONFIG.mqtt.topics.heartbeat) {
             esp32Online = true;
             ultimoHeartbeat = Date.now();
@@ -43,7 +40,6 @@ function conectarMQTT() {
             return;
         }
         
-        // Emergencia persistente
         if (payload.includes('"emergenciaActiva":true')) {
             mostrarEmergencia(true);
             return;
