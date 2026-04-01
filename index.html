@@ -671,6 +671,7 @@
                 updateEsp32Status(true);
                 return;
             }
+            // DETECTAR ACTIVACIÓN DE EMERGENCIA
             if (payload.includes('"emergenciaActiva":true')) {
                 if (!emergenciaActiva) {
                     emergenciaActiva = true;
@@ -678,10 +679,11 @@
                 }
                 return;
             }
+            // DETECTAR DESACTIVACIÓN DE EMERGENCIA
             if (emergenciaActiva && payload.includes('"emergenciaActiva":false')) {
                 emergenciaActiva = false;
                 renderNormal();
-                setTimeout(() => { if (client && !connected) connectMQTT(); }, 500);
+                setTimeout(() => { location.reload(); }, 1000);
                 return;
             }
             try {
