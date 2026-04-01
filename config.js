@@ -1,4 +1,3 @@
-// ==================== CONFIGURACIÓN ====================
 const CONFIG = {
     mqtt: {
         broker: "wss://fce01a048733432a9eae2f8d8454ef46.s1.eu.hivemq.cloud:8884/mqtt",
@@ -12,7 +11,7 @@ const CONFIG = {
         }
     },
     tiempos: {
-        heartbeatTimeout: 30000,  // 30 segundos sin heartbeat = ESP32 desconectado
-        updateInterval: 1000      // Actualizar cada 1 segundo
+        heartbeatTimeout: 30000,
+        updateInterval: 1000
     }
 };
