@@ -330,9 +330,57 @@
         .toggle-button.active::after {
             left: 26px;
         }
+
+        /* ALERTA DE EMERGENCIA */
+        .alerta-emergencia {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #e74c3c;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            animation: slideDown 0.5s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alerta-emergencia.oculto {
+            display: none;
+        }
+
+        @keyframes slideDown {
+            from {
+                top: -50px;
+                opacity: 0;
+            }
+            to {
+                top: 20px;
+                opacity: 1;
+            }
+        }
+
+        .alerta-emergencia button {
+            background: white;
+            color: #e74c3c;
+            border: none;
+            border-radius: 30px;
+            padding: 4px 12px;
+            cursor: pointer;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body id="mainBody">
+<div id="alertaEmergencia" class="alerta-emergencia oculto">
+    🛑 <span id="alertaMensaje">EMERGENCIA ACTIVADA</span>
+    <button onclick="cerrarAlerta()">✕</button>
+</div>
 <div class="container" id="mainContainer"></div>
 
 <script>
@@ -343,7 +391,8 @@
         comandosTopic: "porton/comandos",
         estadoTopic: "porton/estado",
         sensoresTopic: "porton/sensores",
-        heartbeatTopic: "porton/heartbeat"
+        heartbeatTopic: "porton/heartbeat",
+        alertaTopic: "porton/alerta"
     };
 
     let client = null;
@@ -352,6 +401,26 @@
     let ultimoHeartbeat = 0;
     let emergenciaActiva = false;
     let menuAbierto = true;
+
+    // Funciones de alerta
+    function mostrarAlerta(mensaje, esEmergencia = true) {
+        const alerta = document.getElementById('alertaEmergencia');
+        const alertaMensaje = document.getElementById('alertaMensaje');
+        alertaMensaje.innerHTML = mensaje;
+        alerta.classList.remove('oculto');
+        
+        if (esEmergencia) {
+            renderEmergencia();
+        } else {
+            setTimeout(() => {
+                alerta.classList.add('oculto');
+            }, 3000);
+        }
+    }
+
+    function cerrarAlerta() {
+        document.getElementById('alertaEmergencia').classList.add('oculto');
+    }
 
     function renderNormal() {
         document.getElementById('mainBody').classList.remove('emergencia');
@@ -660,18 +729,34 @@
             client.subscribe(MQTT_CONFIG.estadoTopic);
             client.subscribe(MQTT_CONFIG.sensoresTopic);
             client.subscribe(MQTT_CONFIG.heartbeatTopic);
+            client.subscribe(MQTT_CONFIG.alertaTopic);
             setTimeout(() => { sendCommand("ESTADO"); }, 500);
         });
         client.on('message', (topic, message) => {
             const payload = message.toString();
             console.log("📨 Recibido:", topic, payload);
+            
+            // HEARTBEAT
             if (topic === MQTT_CONFIG.heartbeatTopic) {
                 esp32Online = true;
                 ultimoHeartbeat = Date.now();
                 updateEsp32Status(true);
                 return;
             }
-            // DETECTAR ACTIVACIÓN DE EMERGENCIA
+            
+            // ALERTA DE EMERGENCIA
+            if (topic === MQTT_CONFIG.alertaTopic) {
+                if (payload === "EMERGENCIA_ACTIVADA") {
+                    mostrarAlerta("🛑 EMERGENCIA ACTIVADA - Chapa activada, motor desactivado", true);
+                } else if (payload === "EMERGENCIA_DESACTIVADA") {
+                    mostrarAlerta("✅ EMERGENCIA DESACTIVADA - Sistema恢复正常", false);
+                    emergenciaActiva = false;
+                    renderNormal();
+                }
+                return;
+            }
+            
+            // DETECTAR EMERGENCIA POR ESTADO
             if (payload.includes('"emergenciaActiva":true')) {
                 if (!emergenciaActiva) {
                     emergenciaActiva = true;
@@ -679,13 +764,14 @@
                 }
                 return;
             }
-            // DETECTAR DESACTIVACIÓN DE EMERGENCIA
+            
             if (emergenciaActiva && payload.includes('"emergenciaActiva":false')) {
                 emergenciaActiva = false;
                 renderNormal();
                 setTimeout(() => { location.reload(); }, 1000);
                 return;
             }
+            
             try {
                 const data = JSON.parse(payload);
                 if (topic === MQTT_CONFIG.estadoTopic) {
