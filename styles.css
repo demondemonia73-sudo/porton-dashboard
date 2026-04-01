@@ -5,7 +5,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Segoe UI', Arial, sans-serif;
     background: linear-gradient(135deg, #1e293b, #0f172a);
     min-height: 100vh;
     padding: 20px;
@@ -200,6 +200,7 @@ h1 {
     position: relative;
     cursor: pointer;
     transition: 0.2s;
+    display: inline-block;
 }
 .toggle.active { background: #48bb78; }
 .toggle::after {
