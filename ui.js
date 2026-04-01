@@ -1,4 +1,3 @@
-// ==================== UI ====================
 let menuAbierto = true;
 
 function toggleMenu() {
@@ -145,7 +144,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Badges
     const chapaBadge = document.getElementById('chapaBadge');
     if (chapaBadge) chapaBadge.innerHTML = data.chapa ? '🔐 Chapa: ON' : '🔐 Chapa: OFF';
     
@@ -179,15 +177,9 @@ function iniciarReloj() {
 function configurarBotones() {
     const btnAbrir = document.getElementById('btnAbrir');
     const btnCerrar = document.getElementById('btnCerrar');
-    const btnToggleAuto = document.getElementById('btnToggleAuto');
-    const btnToggleFoto = document.getElementById('btnToggleFoto');
-    const btnToggleMov = document.getElementById('btnToggleMov');
     
     if (btnAbrir) btnAbrir.onclick = () => enviarComando("ABRIR");
     if (btnCerrar) btnCerrar.onclick = () => enviarComando("CERRAR");
-    if (btnToggleAuto) btnToggleAuto.onclick = () => enviarComando("TOGGLE_AUTO");
-    if (btnToggleFoto) btnToggleFoto.onclick = () => enviarComando("TOGGLE_FOTO");
-    if (btnToggleMov) btnToggleMov.onclick = () => enviarComando("TOGGLE_MOV");
 }
 
 function toggleSensor(sensor) {
