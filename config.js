@@ -7,8 +7,7 @@ const CONFIG = {
             comandos: "porton/comandos",
             estado: "porton/estado",
             sensores: "porton/sensores",
-            heartbeat: "porton/heartbeat",
-            confirmacion: "porton/confirmacion"
+            heartbeat: "porton/heartbeat"
         }
     },
     tiempos: {
