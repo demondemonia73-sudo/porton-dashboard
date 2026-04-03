@@ -182,68 +182,15 @@ function configurarBotones() {
     if (btnCerrar) btnCerrar.onclick = () => enviarComando("CERRAR");
 }
 
-// ==================== TOGGLES CON ACTUALIZACIÓN INMEDIATA ====================
 function toggleSensor(sensor) {
-    // Actualizar visualmente el toggle INMEDIATAMENTE
-    const toggleId = sensor === 'foto' ? 'toggleFoto' : 'toggleMov';
-    const toggle = document.getElementById(toggleId);
-    const nuevoEstado = !toggle.classList.contains('active');
-    
-    // Cambiar visualmente
-    if (nuevoEstado) {
-        toggle.classList.add('active');
-    } else {
-        toggle.classList.remove('active');
-    }
-    
-    // Actualizar también la caja visual
-    const boxId = sensor === 'foto' ? 'fotoBox' : 'movBox';
-    const box = document.getElementById(boxId);
-    const valId = sensor === 'foto' ? 'fotoVal' : 'movVal';
-    const val = document.getElementById(valId);
-    
-    if (nuevoEstado) {
-        if (box) box.classList.add('activo');
-        if (val) val.innerHTML = '✅ HABILITADO';
-    } else {
-        if (box) box.classList.remove('activo');
-        if (val) val.innerHTML = '⚪ DESHABILITADO';
-    }
-    
-    // Enviar comando al ESP32
     enviarComando(sensor === 'foto' ? "TOGGLE_FOTO" : "TOGGLE_MOV");
 }
 
 function toggleModoAuto() {
-    const toggle = document.getElementById('toggleAuto');
-    const nuevoEstado = !toggle.classList.contains('active');
-    
-    if (nuevoEstado) {
-        toggle.classList.add('active');
-        document.getElementById('autoBox').classList.add('activo');
-        document.getElementById('autoVal').innerHTML = '✅ ACTIVADO';
-    } else {
-        toggle.classList.remove('active');
-        document.getElementById('autoBox').classList.remove('activo');
-        document.getElementById('autoVal').innerHTML = '⚪ DESACTIVADO';
-    }
-    
     enviarComando("TOGGLE_AUTO");
 }
 
 function toggleBotonFisico() {
-    const toggle = document.getElementById('toggleBoton');
-    const badge = document.getElementById('botonBadge');
-    const nuevoEstado = !toggle.classList.contains('active');
-    
-    if (nuevoEstado) {
-        toggle.classList.add('active');
-        badge.innerHTML = '🎮 Botón: ON';
-    } else {
-        toggle.classList.remove('active');
-        badge.innerHTML = '🎮 Botón: OFF';
-    }
-    
     enviarComando("TOGGLE_BOTON");
 }
 
