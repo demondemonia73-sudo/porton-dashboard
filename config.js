@@ -7,11 +7,11 @@ const CONFIG = {
             comandos: "porton/comandos",
             estado: "porton/estado",
             sensores: "porton/sensores",
-            heartbeat: "porton/heartbeat"
+            heartbeat: "porton/heartbeat",
+            confirmacion: "porton/confirmacion"
         }
     },
     tiempos: {
-        heartbeatTimeout: 30000,
-        updateInterval: 1000
+        heartbeatTimeout: 30000
     }
 };
