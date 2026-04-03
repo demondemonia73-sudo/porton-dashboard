@@ -89,81 +89,92 @@ function updateSensores(data) {
 function updateConfiguracion(data) {
     console.log("🔄 Actualizando configuración con:", data);
     
-    const fotoVal = document.getElementById('fotoVal');
-    const movVal = document.getElementById('movVal');
-    const autoVal = document.getElementById('autoVal');
-    const fotoBox = document.getElementById('fotoBox');
-    const movBox = document.getElementById('movBox');
-    const autoBox = document.getElementById('autoBox');
+    // ACTUALIZAR FOTOELÉCTRICA
     const toggleFoto = document.getElementById('toggleFoto');
-    const toggleMov = document.getElementById('toggleMov');
-    const toggleAuto = document.getElementById('toggleAuto');
-    const toggleBoton = document.getElementById('toggleBoton');
+    const fotoVal = document.getElementById('fotoVal');
+    const fotoBox = document.getElementById('fotoBox');
     
-    // Actualizar Fotoeléctrica
     if (data.fotoHabilitado !== undefined) {
-        console.log("📷 Foto estado:", data.fotoHabilitado);
+        console.log("📷 Foto estado recibido:", data.fotoHabilitado);
         if (data.fotoHabilitado === true) {
+            if (toggleFoto) toggleFoto.classList.add('active');
             if (fotoVal) fotoVal.innerHTML = '✅ HABILITADO';
             if (fotoBox) fotoBox.classList.add('activo');
-            if (toggleFoto) toggleFoto.classList.add('active');
         } else {
+            if (toggleFoto) toggleFoto.classList.remove('active');
             if (fotoVal) fotoVal.innerHTML = '⚪ DESHABILITADO';
             if (fotoBox) fotoBox.classList.remove('activo');
-            if (toggleFoto) toggleFoto.classList.remove('active');
         }
     }
     
-    // Actualizar Sensor Movimiento
+    // ACTUALIZAR SENSOR MOVIMIENTO
+    const toggleMov = document.getElementById('toggleMov');
+    const movVal = document.getElementById('movVal');
+    const movBox = document.getElementById('movBox');
+    
     if (data.movHabilitado !== undefined) {
-        console.log("🚶 Mov estado:", data.movHabilitado);
+        console.log("🚶 Mov estado recibido:", data.movHabilitado);
         if (data.movHabilitado === true) {
+            if (toggleMov) toggleMov.classList.add('active');
             if (movVal) movVal.innerHTML = '✅ HABILITADO';
             if (movBox) movBox.classList.add('activo');
-            if (toggleMov) toggleMov.classList.add('active');
         } else {
+            if (toggleMov) toggleMov.classList.remove('active');
             if (movVal) movVal.innerHTML = '⚪ DESHABILITADO';
             if (movBox) movBox.classList.remove('activo');
-            if (toggleMov) toggleMov.classList.remove('active');
         }
     }
     
-    // Actualizar Modo Automático
+    // ACTUALIZAR MODO AUTOMÁTICO
+    const toggleAuto = document.getElementById('toggleAuto');
+    const autoVal = document.getElementById('autoVal');
+    const autoBox = document.getElementById('autoBox');
+    
     if (data.modoAuto !== undefined) {
-        console.log("🤖 Auto estado:", data.modoAuto);
+        console.log("🤖 Auto estado recibido:", data.modoAuto);
         if (data.modoAuto === true) {
+            if (toggleAuto) toggleAuto.classList.add('active');
             if (autoVal) autoVal.innerHTML = '✅ ACTIVADO';
             if (autoBox) autoBox.classList.add('activo');
-            if (toggleAuto) toggleAuto.classList.add('active');
         } else {
+            if (toggleAuto) toggleAuto.classList.remove('active');
             if (autoVal) autoVal.innerHTML = '⚪ DESACTIVADO';
             if (autoBox) autoBox.classList.remove('activo');
-            if (toggleAuto) toggleAuto.classList.remove('active');
         }
     }
     
-    // Actualizar Botón Físico
+    // ACTUALIZAR BOTÓN FÍSICO
+    const toggleBoton = document.getElementById('toggleBoton');
+    const botonBadge = document.getElementById('botonBadge');
+    
     if (data.botonFisicoHabilitado !== undefined) {
-        console.log("🎮 Botón estado:", data.botonFisicoHabilitado);
+        console.log("🎮 Botón estado recibido:", data.botonFisicoHabilitado);
         if (data.botonFisicoHabilitado === true) {
             if (toggleBoton) toggleBoton.classList.add('active');
-            document.getElementById('botonBadge').innerHTML = '🎮 Botón: ON';
+            if (botonBadge) botonBadge.innerHTML = '🎮 Botón: ON';
         } else {
             if (toggleBoton) toggleBoton.classList.remove('active');
-            document.getElementById('botonBadge').innerHTML = '🎮 Botón: OFF';
+            if (botonBadge) botonBadge.innerHTML = '🎮 Botón: OFF';
         }
     }
     
-    // Actualizar Chapa
+    // ACTUALIZAR CHAPA
     const chapaBadge = document.getElementById('chapaBadge');
-    if (chapaBadge && data.chapa !== undefined) {
-        chapaBadge.innerHTML = data.chapa ? '🔐 Chapa: ON' : '🔐 Chapa: OFF';
+    if (chapaBadge && data.chapaActiva !== undefined) {
+        chapaBadge.innerHTML = data.chapaActiva ? '🔐 Chapa: ON' : '🔐 Chapa: OFF';
     }
     
-    // Actualizar MQTT
+    // ACTUALIZAR MQTT
     const mqttBadge = document.getElementById('mqttBadge');
     if (mqttBadge && data.mqtt !== undefined) {
         mqttBadge.innerHTML = data.mqtt ? '🌍 MQTT: Conectado' : '🌍 MQTT: Desconectado';
+    }
+    
+    // ACTUALIZAR EMERGENCIA
+    const emergenciaBadge = document.getElementById('emergenciaBadge');
+    if (emergenciaBadge && data.emergenciaActiva !== undefined) {
+        emergenciaBadge.innerHTML = data.emergenciaActiva ? '🛑 EMERGENCIA ACTIVA' : '🛑 Emergencia: OFF';
+        emergenciaBadge.style.background = data.emergenciaActiva ? '#e74c3c' : '#e67e22';
     }
 }
 
