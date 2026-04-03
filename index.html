@@ -12,99 +12,134 @@
     <script src="emergencia.js"></script>
 </head>
 <body>
+<!-- Pantalla de emergencia persistente -->
 <div id="emergenciaOverlay" style="display:none" class="emergencia-overlay">
     <div class="emergencia-card">
-        <h1>🛑 EMERGENCIA 🛑</h1>
+        <div class="emergencia-icon">🛑</div>
+        <h1>EMERGENCIA</h1>
         <div class="emergencia-texto">PARADA DE EMERGENCIA ACTIVADA</div>
-        <p>🔒 Chapa eléctrica activada</p>
-        <p>⛔ Motor desactivado</p>
-        <p>🔌 Sensores externos desactivados</p>
-        <button class="btn" onclick="location.reload()">🔄 Actualizar</button>
+        <div class="emergencia-info">
+            <p>🔒 Chapa eléctrica activada</p>
+            <p>⛔ Motor desactivado</p>
+            <p>🔌 Sensores externos desactivados</p>
+        </div>
+        <button class="btn-emergencia" onclick="location.reload()">🔄 Actualizar</button>
     </div>
 </div>
 
 <div class="container">
+    <!-- Tarjeta principal -->
     <div class="card">
-        <h1>🚪 PORTÓN AUTOMÁTICO</h1>
-        <div class="ip">🔒 192.168.1.200</div>
-        
-        <div class="reloj" id="reloj">--/--/---- --:--:--</div>
-        
-        <div class="status-bar">
-            <span>🔌 HiveMQ Cloud</span>
-            <span id="statusText">Conectando...</span>
-        </div>
-        <div class="status-bar">
-            <span>🖥️ ESP32</span>
-            <span id="esp32StatusText">Conectando...</span>
+        <!-- Encabezado -->
+        <div class="header">
+            <div class="header-icon">🚪</div>
+            <h1>PORTÓN AUTOMÁTICO</h1>
+            <div class="header-badge">MQTT CLOUD</div>
         </div>
         
-        <div class="menu-sensores">
-            <div class="menu-header" onclick="toggleMenu()">⚙️ CONTROL SENSORES EXTERNOS</div>
-            <div class="menu-content" id="menuContent">
-                <div class="toggle-switch">
-                    <div class="toggle-label"><span>📷</span> Fotoeléctrica</div>
-                    <div class="toggle" id="toggleFoto" onclick="toggleSensor('foto')"></div>
+        <div class="ip-address">🔒 192.168.1.200</div>
+        
+        <!-- Reloj -->
+        <div class="clock" id="reloj">--/--/---- --:--:--</div>
+        
+        <!-- Estados de conexión -->
+        <div class="status-grid">
+            <div class="status-item">
+                <span class="status-label">🔌 HiveMQ</span>
+                <span class="status-value" id="statusText">Conectando...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">🖥️ ESP32</span>
+                <span class="status-value" id="esp32StatusText">Conectando...</span>
+            </div>
+        </div>
+        
+        <!-- Panel de control de sensores -->
+        <div class="control-panel">
+            <div class="panel-title" onclick="togglePanel()">
+                <span>⚙️ CONTROL SENSORES EXTERNOS</span>
+                <span class="panel-arrow" id="panelArrow">▼</span>
+            </div>
+            <div class="panel-content" id="panelContent">
+                <div class="control-item">
+                    <div class="control-label">
+                        <span class="control-icon">📷</span>
+                        <span>Fotoeléctrica</span>
+                    </div>
+                    <div class="toggle-switch" id="toggleFoto" onclick="toggleSensor('foto')"></div>
                 </div>
-                <div class="toggle-switch">
-                    <div class="toggle-label"><span>🚶</span> Sensor Movimiento</div>
-                    <div class="toggle" id="toggleMov" onclick="toggleSensor('mov')"></div>
+                <div class="control-item">
+                    <div class="control-label">
+                        <span class="control-icon">🚶</span>
+                        <span>Sensor Movimiento</span>
+                    </div>
+                    <div class="toggle-switch" id="toggleMov" onclick="toggleSensor('mov')"></div>
                 </div>
-                <div class="toggle-switch">
-                    <div class="toggle-label"><span>🤖</span> Modo Automático</div>
-                    <div class="toggle" id="toggleAuto" onclick="toggleModoAuto()"></div>
+                <div class="control-item">
+                    <div class="control-label">
+                        <span class="control-icon">🤖</span>
+                        <span>Modo Automático</span>
+                    </div>
+                    <div class="toggle-switch" id="toggleAuto" onclick="toggleModoAuto()"></div>
                 </div>
-                <div class="toggle-switch">
-                    <div class="toggle-label"><span>🎮</span> Botón Físico</div>
-                    <div class="toggle" id="toggleBoton" onclick="toggleBotonFisico()"></div>
+                <div class="control-item">
+                    <div class="control-label">
+                        <span class="control-icon">🎮</span>
+                        <span>Botón Físico</span>
+                    </div>
+                    <div class="toggle-switch" id="toggleBoton" onclick="toggleBotonFisico()"></div>
                 </div>
             </div>
         </div>
         
-        <div class="porton-area">
-            <div class="track"></div>
-            <div class="puerta" id="puerta">🚪</div>
+        <!-- Visualización del portón -->
+        <div class="gate-area">
+            <div class="gate-track"></div>
+            <div class="gate-door" id="puerta">🚪</div>
         </div>
-        <div class="estado-texto" id="estadoPorton">Cargando...</div>
+        <div class="gate-status" id="estadoPorton">Cargando...</div>
         
-        <div class="sensores-grid">
-            <div class="sensor-box" id="sensorAbiertoBox">
+        <!-- Sensores de final de carrera -->
+        <div class="sensors-row">
+            <div class="sensor-card" id="sensorAbiertoBox">
                 <div class="sensor-icon">🔓</div>
-                <div>FINAL ABIERTO</div>
-                <div id="sensorAbiertoVal">⚪</div>
+                <div class="sensor-label">FINAL ABIERTO</div>
+                <div class="sensor-value" id="sensorAbiertoVal">⚪</div>
             </div>
-            <div class="sensor-box" id="sensorCerradoBox">
+            <div class="sensor-card" id="sensorCerradoBox">
                 <div class="sensor-icon">🔒</div>
-                <div>FINAL CERRADO</div>
-                <div id="sensorCerradoVal">⚪</div>
+                <div class="sensor-label">FINAL CERRADO</div>
+                <div class="sensor-value" id="sensorCerradoVal">⚪</div>
             </div>
         </div>
         
-        <div class="sensores-grid">
-            <div class="sensor-box" id="fotoBox">
+        <!-- Estado de sensores externos -->
+        <div class="sensors-row">
+            <div class="sensor-card" id="fotoBox">
                 <div class="sensor-icon">📷</div>
-                <div>FOTOELÉCTRICA</div>
-                <div id="fotoVal">⚪</div>
+                <div class="sensor-label">FOTOELÉCTRICA</div>
+                <div class="sensor-value" id="fotoVal">⚪</div>
             </div>
-            <div class="sensor-box" id="movBox">
+            <div class="sensor-card" id="movBox">
                 <div class="sensor-icon">🚶</div>
-                <div>MOVIMIENTO</div>
-                <div id="movVal">⚪</div>
+                <div class="sensor-label">MOVIMIENTO</div>
+                <div class="sensor-value" id="movVal">⚪</div>
+            </div>
+            <div class="sensor-card" id="autoBox">
+                <div class="sensor-icon">🤖</div>
+                <div class="sensor-label">MODO AUTOMÁTICO</div>
+                <div class="sensor-value" id="autoVal">⚪</div>
             </div>
         </div>
         
-        <div class="sensor-box" id="autoBox">
-            <div class="sensor-icon">🤖</div>
-            <div>MODO AUTOMÁTICO</div>
-            <div id="autoVal">⚪</div>
+        <!-- Botones principales -->
+        <div class="button-group">
+            <button class="btn btn-primary" id="btnAbrir">🔓 ABRIR</button>
+            <button class="btn btn-secondary" id="btnCerrar">🔒 CERRAR</button>
         </div>
         
-        <div class="botonera">
-            <button class="btn btn-abrir" id="btnAbrir">🔓 ABRIR</button>
-            <button class="btn btn-cerrar" id="btnCerrar">🔒 CERRAR</button>
-        </div>
-        
-        <div class="badges">
+        <!-- Badges de estado -->
+        <div class="badges-row">
             <span class="badge">✅ Pulso 300ms</span>
             <span class="badge">🔒 IP Fija</span>
             <span class="badge badge-chapa" id="chapaBadge">🔐 Chapa: OFF</span>
@@ -113,13 +148,15 @@
             <span class="badge badge-mqtt" id="mqttBadge">🌍 MQTT: Conectando...</span>
         </div>
         
+        <!-- Footer -->
         <div class="footer">
             <div id="timestamp"></div>
-            <div class="local-access">🏠 Acceso local: <strong>http://192.168.1.200</strong></div>
+            <div class="local-link">🏠 Acceso local: <strong>http://192.168.1.200</strong></div>
         </div>
     </div>
 </div>
 
+<!-- Mensaje flotante -->
 <div id="mensajeFlotante" class="mensaje-flotante" style="display:none"></div>
 
 <script>
