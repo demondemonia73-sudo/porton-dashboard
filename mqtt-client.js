@@ -23,7 +23,6 @@ function conectarMQTT() {
         client.subscribe(CONFIG.mqtt.topics.estado);
         client.subscribe(CONFIG.mqtt.topics.sensores);
         client.subscribe(CONFIG.mqtt.topics.heartbeat);
-        client.subscribe(CONFIG.mqtt.topics.confirmacion);
         
         mostrarMensaje("🟢 Conectado a MQTT - Solicitando estado al ESP32...");
         
@@ -34,25 +33,14 @@ function conectarMQTT() {
 
     client.on('message', (topic, message) => {
         const payload = message.toString();
-        console.log("📨 Recibido:", topic, payload);
+        console.log("📨 Recibido en tema:", topic);
+        console.log("📨 Contenido:", payload);
         
         if (topic === CONFIG.mqtt.topics.heartbeat) {
             esp32Online = true;
             ultimoHeartbeat = Date.now();
             updateEsp32Status(true);
-            return;
-        }
-        
-        if (topic === CONFIG.mqtt.topics.confirmacion) {
-            try {
-                const data = JSON.parse(payload);
-                if (data.accion && data.origen) {
-                    const origenTexto = data.origen === "dashboard" ? "📱 Dashboard Remoto" : "🏠 Web Local";
-                    mostrarMensaje(`📢 Acción "${data.accion}" ejecutada desde ${origenTexto}`);
-                }
-            } catch(e) {
-                console.warn("Error parseando confirmación:", payload);
-            }
+            mostrarMensaje("💓 Heartbeat recibido - ESP32 en línea");
             return;
         }
         
@@ -68,9 +56,14 @@ function conectarMQTT() {
         try {
             const data = JSON.parse(payload);
             if (topic === CONFIG.mqtt.topics.estado) {
+                console.log("📊 Estado completo recibido:", data);
                 if (data.estado) updatePortonUI(data.estado);
                 updateConfiguracion(data);
+                if (data.abierto !== undefined || data.cerrado !== undefined) {
+                    updateSensores(data);
+                }
             } else if (topic === CONFIG.mqtt.topics.sensores) {
+                console.log("📡 Sensores recibidos:", data);
                 updateSensores(data);
             }
             actualizarTimestamp();
