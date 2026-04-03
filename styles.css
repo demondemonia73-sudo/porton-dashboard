@@ -16,7 +16,6 @@ body {
     margin: 0 auto;
 }
 
-/* Tarjeta principal */
 .card {
     background: white;
     border-radius: 32px;
@@ -24,7 +23,6 @@ body {
     box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.25);
 }
 
-/* Encabezado */
 .header {
     display: flex;
     align-items: center;
@@ -54,7 +52,6 @@ body {
     font-weight: 600;
 }
 
-/* IP Address */
 .ip-address {
     background: linear-gradient(135deg, #2b5876, #1e3a5f);
     color: white;
@@ -67,7 +64,6 @@ body {
     margin-bottom: 20px;
 }
 
-/* Reloj */
 .clock {
     background: #f8fafc;
     border-radius: 20px;
@@ -81,7 +77,6 @@ body {
     border: 1px solid #e2e8f0;
 }
 
-/* Estados de conexión */
 .status-grid {
     display: flex;
     gap: 12px;
@@ -106,19 +101,38 @@ body {
 }
 
 .status-value {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-weight: 600;
     font-family: monospace;
 }
 
-.status-value.connected {
+.status-led {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-led.green {
+    background-color: #10b981;
+    box-shadow: 0 0 5px #10b981;
+}
+
+.status-led.red {
+    background-color: #ef4444;
+    box-shadow: 0 0 5px #ef4444;
+}
+
+.connected {
     color: #10b981;
 }
 
-.status-value.disconnected {
+.disconnected {
     color: #ef4444;
 }
 
-/* Panel de control */
 .control-panel {
     background: #f8fafc;
     border-radius: 20px;
@@ -190,7 +204,6 @@ body {
     font-size: 20px;
 }
 
-/* Toggle switch */
 .toggle-switch {
     width: 52px;
     height: 28px;
@@ -222,7 +235,6 @@ body {
     left: 26px;
 }
 
-/* Área del portón */
 .gate-area {
     background: linear-gradient(145deg, #334155, #1e293b);
     border-radius: 24px;
@@ -278,7 +290,6 @@ body {
     color: #9a3412;
 }
 
-/* Sensores */
 .sensors-row {
     display: flex;
     gap: 12px;
@@ -318,7 +329,6 @@ body {
     font-weight: 700;
 }
 
-/* Botones */
 .button-group {
     display: flex;
     gap: 12px;
@@ -333,7 +343,7 @@ body {
     border: none;
     border-radius: 60px;
     cursor: pointer;
-    transition: transform 0.1s, box-shadow 0.1s;
+    transition: transform 0.1s;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -356,7 +366,6 @@ body {
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
-/* Badges */
 .badges-row {
     display: flex;
     flex-wrap: wrap;
@@ -395,7 +404,6 @@ body {
     color: white;
 }
 
-/* Footer */
 .footer {
     text-align: center;
     font-size: 11px;
