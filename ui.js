@@ -18,11 +18,11 @@ function updateConnectionStatus(connected) {
     const statusText = document.getElementById('statusText');
     if (statusText) {
         if (connected) {
-            statusText.innerHTML = 'Conectado';
+            statusText.innerHTML = '<span class="status-led green"></span> Conectado';
             statusText.classList.add('connected');
             statusText.classList.remove('disconnected');
         } else {
-            statusText.innerHTML = 'Desconectado';
+            statusText.innerHTML = '<span class="status-led red"></span> Desconectado';
             statusText.classList.add('disconnected');
             statusText.classList.remove('connected');
         }
@@ -33,11 +33,11 @@ function updateEsp32Status(online) {
     const esp32Text = document.getElementById('esp32StatusText');
     if (esp32Text) {
         if (online) {
-            esp32Text.innerHTML = 'En línea';
+            esp32Text.innerHTML = '<span class="status-led green"></span> En línea';
             esp32Text.classList.add('connected');
             esp32Text.classList.remove('disconnected');
         } else {
-            esp32Text.innerHTML = 'Desconectado';
+            esp32Text.innerHTML = '<span class="status-led red"></span> Desconectado';
             esp32Text.classList.add('disconnected');
             esp32Text.classList.remove('connected');
         }
