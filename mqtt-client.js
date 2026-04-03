@@ -34,13 +34,11 @@ function conectarMQTT() {
     client.on('message', (topic, message) => {
         const payload = message.toString();
         console.log("📨 Recibido en tema:", topic);
-        console.log("📨 Contenido:", payload);
         
         if (topic === CONFIG.mqtt.topics.heartbeat) {
             esp32Online = true;
             ultimoHeartbeat = Date.now();
             updateEsp32Status(true);
-            mostrarMensaje("💓 Heartbeat recibido - ESP32 en línea");
             return;
         }
         
@@ -56,11 +54,10 @@ function conectarMQTT() {
         try {
             const data = JSON.parse(payload);
             if (topic === CONFIG.mqtt.topics.estado) {
-                console.log("📊 Estado completo recibido:", data);
+                console.log("📊 Estado recibido:", data);
                 if (data.estado) updatePortonUI(data.estado);
                 updateConfiguracion(data);
             } else if (topic === CONFIG.mqtt.topics.sensores) {
-                console.log("📡 Sensores recibidos:", data);
                 updateSensores(data);
             }
             actualizarTimestamp();
@@ -87,9 +84,9 @@ function enviarComando(cmd) {
         return;
     }
     client.publish(CONFIG.mqtt.topics.comandos, cmd);
-    mostrarMensaje(`📤 Comando "${cmd}" enviado desde 📱 Dashboard Remoto`);
+    mostrarMensaje(`📤 Comando "${cmd}" enviado`);
     
-    document.getElementById('timestamp').innerHTML = `📨 Comando "${cmd}" enviado a las ${new Date().toLocaleTimeString()}`;
+    document.getElementById('timestamp').innerHTML = `📨 Comando enviado a las ${new Date().toLocaleTimeString()}`;
     setTimeout(() => {
         const ts = document.getElementById('timestamp');
         if (ts && !ts.innerHTML.includes("Comando")) {
