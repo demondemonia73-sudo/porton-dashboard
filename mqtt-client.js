@@ -59,9 +59,6 @@ function conectarMQTT() {
                 console.log("📊 Estado completo recibido:", data);
                 if (data.estado) updatePortonUI(data.estado);
                 updateConfiguracion(data);
-                if (data.abierto !== undefined || data.cerrado !== undefined) {
-                    updateSensores(data);
-                }
             } else if (topic === CONFIG.mqtt.topics.sensores) {
                 console.log("📡 Sensores recibidos:", data);
                 updateSensores(data);
