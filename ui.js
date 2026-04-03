@@ -1,15 +1,16 @@
-let menuAbierto = true;
+let panelAbierto = true;
 
-function toggleMenu() {
-    menuAbierto = !menuAbierto;
-    let m = document.getElementById('menuContent');
-    let h = document.querySelector('.menu-header');
-    if (menuAbierto) {
-        m.classList.remove('collapsed');
-        h.classList.remove('collapsed');
+function togglePanel() {
+    panelAbierto = !panelAbierto;
+    const content = document.getElementById('panelContent');
+    const arrow = document.getElementById('panelArrow');
+    
+    if (panelAbierto) {
+        content.classList.remove('collapsed');
+        arrow.classList.remove('collapsed');
     } else {
-        m.classList.add('collapsed');
-        h.classList.add('collapsed');
+        content.classList.add('collapsed');
+        arrow.classList.add('collapsed');
     }
 }
 
@@ -17,10 +18,12 @@ function updateConnectionStatus(connected) {
     const statusText = document.getElementById('statusText');
     if (statusText) {
         if (connected) {
-            statusText.innerHTML = '<span class="status-led" style="background:#10b981;"></span> Conectado';
+            statusText.innerHTML = 'Conectado';
             statusText.classList.add('connected');
+            statusText.classList.remove('disconnected');
         } else {
-            statusText.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
+            statusText.innerHTML = 'Desconectado';
+            statusText.classList.add('disconnected');
             statusText.classList.remove('connected');
         }
     }
@@ -30,10 +33,12 @@ function updateEsp32Status(online) {
     const esp32Text = document.getElementById('esp32StatusText');
     if (esp32Text) {
         if (online) {
-            esp32Text.innerHTML = '<span class="status-led" style="background:#10b981;"></span> En línea';
+            esp32Text.innerHTML = 'En línea';
             esp32Text.classList.add('connected');
+            esp32Text.classList.remove('disconnected');
         } else {
-            esp32Text.innerHTML = '<span class="status-led" style="background:#ef4444;"></span> Desconectado';
+            esp32Text.innerHTML = 'Desconectado';
+            esp32Text.classList.add('disconnected');
             esp32Text.classList.remove('connected');
         }
     }
@@ -46,15 +51,15 @@ function updatePortonUI(estado) {
     
     if (estado === "ABIERTO") {
         textoDiv.innerHTML = '✅ PORTÓN ABIERTO';
-        textoDiv.className = 'estado-texto abierto';
+        textoDiv.className = 'gate-status abierto';
         puerta.style.left = 'calc(100% - 90px)';
     } else if (estado === "CERRADO") {
         textoDiv.innerHTML = '🔒 PORTÓN CERRADO';
-        textoDiv.className = 'estado-texto cerrado';
+        textoDiv.className = 'gate-status cerrado';
         puerta.style.left = '12px';
     } else {
         textoDiv.innerHTML = '⚠️ PORTÓN ENTREABIERTO';
-        textoDiv.className = 'estado-texto intermedio';
+        textoDiv.className = 'gate-status intermedio';
         puerta.style.left = 'calc(50% - 45px)';
     }
 }
@@ -87,15 +92,14 @@ function updateSensores(data) {
 }
 
 function updateConfiguracion(data) {
-    console.log("🔄 Actualizando configuración con:", data);
+    console.log("🔄 Actualizando configuración:", data);
     
-    // ACTUALIZAR FOTOELÉCTRICA
+    // Fotoeléctrica
     const toggleFoto = document.getElementById('toggleFoto');
     const fotoVal = document.getElementById('fotoVal');
     const fotoBox = document.getElementById('fotoBox');
     
     if (data.fotoHabilitado !== undefined) {
-        console.log("📷 Foto estado recibido:", data.fotoHabilitado);
         if (data.fotoHabilitado === true) {
             if (toggleFoto) toggleFoto.classList.add('active');
             if (fotoVal) fotoVal.innerHTML = '✅ HABILITADO';
@@ -107,13 +111,12 @@ function updateConfiguracion(data) {
         }
     }
     
-    // ACTUALIZAR SENSOR MOVIMIENTO
+    // Sensor Movimiento
     const toggleMov = document.getElementById('toggleMov');
     const movVal = document.getElementById('movVal');
     const movBox = document.getElementById('movBox');
     
     if (data.movHabilitado !== undefined) {
-        console.log("🚶 Mov estado recibido:", data.movHabilitado);
         if (data.movHabilitado === true) {
             if (toggleMov) toggleMov.classList.add('active');
             if (movVal) movVal.innerHTML = '✅ HABILITADO';
@@ -125,13 +128,12 @@ function updateConfiguracion(data) {
         }
     }
     
-    // ACTUALIZAR MODO AUTOMÁTICO
+    // Modo Automático
     const toggleAuto = document.getElementById('toggleAuto');
     const autoVal = document.getElementById('autoVal');
     const autoBox = document.getElementById('autoBox');
     
     if (data.modoAuto !== undefined) {
-        console.log("🤖 Auto estado recibido:", data.modoAuto);
         if (data.modoAuto === true) {
             if (toggleAuto) toggleAuto.classList.add('active');
             if (autoVal) autoVal.innerHTML = '✅ ACTIVADO';
@@ -143,12 +145,11 @@ function updateConfiguracion(data) {
         }
     }
     
-    // ACTUALIZAR BOTÓN FÍSICO
+    // Botón Físico
     const toggleBoton = document.getElementById('toggleBoton');
     const botonBadge = document.getElementById('botonBadge');
     
     if (data.botonFisicoHabilitado !== undefined) {
-        console.log("🎮 Botón estado recibido:", data.botonFisicoHabilitado);
         if (data.botonFisicoHabilitado === true) {
             if (toggleBoton) toggleBoton.classList.add('active');
             if (botonBadge) botonBadge.innerHTML = '🎮 Botón: ON';
@@ -158,19 +159,19 @@ function updateConfiguracion(data) {
         }
     }
     
-    // ACTUALIZAR CHAPA
+    // Chapa
     const chapaBadge = document.getElementById('chapaBadge');
     if (chapaBadge && data.chapaActiva !== undefined) {
         chapaBadge.innerHTML = data.chapaActiva ? '🔐 Chapa: ON' : '🔐 Chapa: OFF';
     }
     
-    // ACTUALIZAR MQTT
+    // MQTT
     const mqttBadge = document.getElementById('mqttBadge');
     if (mqttBadge && data.mqtt !== undefined) {
         mqttBadge.innerHTML = data.mqtt ? '🌍 MQTT: Conectado' : '🌍 MQTT: Desconectado';
     }
     
-    // ACTUALIZAR EMERGENCIA
+    // Emergencia
     const emergenciaBadge = document.getElementById('emergenciaBadge');
     if (emergenciaBadge && data.emergenciaActiva !== undefined) {
         emergenciaBadge.innerHTML = data.emergenciaActiva ? '🛑 EMERGENCIA ACTIVA' : '🛑 Emergencia: OFF';
