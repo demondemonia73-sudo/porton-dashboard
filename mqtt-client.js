@@ -23,6 +23,9 @@ function conectarMQTT() {
         client.subscribe(CONFIG.mqtt.topics.estado);
         client.subscribe(CONFIG.mqtt.topics.sensores);
         client.subscribe(CONFIG.mqtt.topics.heartbeat);
+        client.subscribe(CONFIG.mqtt.topics.confirmacion);
+        
+        mostrarMensaje("🟢 Conectado a MQTT - Solicitando estado al ESP32...");
         
         setTimeout(() => {
             enviarComando("ESTADO");
@@ -40,7 +43,19 @@ function conectarMQTT() {
             return;
         }
         
-        // Detectar emergencia
+        if (topic === CONFIG.mqtt.topics.confirmacion) {
+            try {
+                const data = JSON.parse(payload);
+                if (data.accion && data.origen) {
+                    const origenTexto = data.origen === "dashboard" ? "📱 Dashboard Remoto" : "🏠 Web Local";
+                    mostrarMensaje(`📢 Acción "${data.accion}" ejecutada desde ${origenTexto}`);
+                }
+            } catch(e) {
+                console.warn("Error parseando confirmación:", payload);
+            }
+            return;
+        }
+        
         if (payload.includes('"emergenciaActiva":true')) {
             mostrarEmergencia(true);
             return;
@@ -82,6 +97,8 @@ function enviarComando(cmd) {
         return;
     }
     client.publish(CONFIG.mqtt.topics.comandos, cmd);
+    mostrarMensaje(`📤 Comando "${cmd}" enviado desde 📱 Dashboard Remoto`);
+    
     document.getElementById('timestamp').innerHTML = `📨 Comando "${cmd}" enviado a las ${new Date().toLocaleTimeString()}`;
     setTimeout(() => {
         const ts = document.getElementById('timestamp');
@@ -89,4 +106,23 @@ function enviarComando(cmd) {
             ts.innerHTML = `🕐 Última actualización: ${new Date().toLocaleTimeString()}`;
         }
     }, 3000);
+}
+
+let mensajeTimeout = null;
+
+function mostrarMensaje(mensaje, duracion = 3000) {
+    const msgDiv = document.getElementById('mensajeFlotante');
+    if (!msgDiv) return;
+    
+    msgDiv.innerHTML = mensaje;
+    msgDiv.style.display = 'block';
+    msgDiv.style.opacity = '1';
+    
+    if (mensajeTimeout) clearTimeout(mensajeTimeout);
+    mensajeTimeout = setTimeout(() => {
+        msgDiv.style.opacity = '0';
+        setTimeout(() => {
+            msgDiv.style.display = 'none';
+        }, 300);
+    }, duracion);
 }
