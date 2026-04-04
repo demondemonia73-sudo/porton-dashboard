@@ -111,23 +111,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Sensor Movimiento
-    const toggleMov = document.getElementById('toggleMov');
-    const movVal = document.getElementById('movVal');
-    const movBox = document.getElementById('movBox');
-    
-    if (data.movHabilitado !== undefined) {
-        if (data.movHabilitado === true) {
-            if (toggleMov) toggleMov.classList.add('active');
-            if (movVal) movVal.innerHTML = '✅ HABILITADO';
-            if (movBox) movBox.classList.add('activo');
-        } else {
-            if (toggleMov) toggleMov.classList.remove('active');
-            if (movVal) movVal.innerHTML = '⚪ DESHABILITADO';
-            if (movBox) movBox.classList.remove('activo');
-        }
-    }
-    
     // Modo Automático
     const toggleAuto = document.getElementById('toggleAuto');
     const autoVal = document.getElementById('autoVal');
@@ -159,10 +142,49 @@ function updateConfiguracion(data) {
         }
     }
     
+    // Sensores PIR
+    const togglePIR = document.getElementById('togglePIR');
+    const pirBadge = document.getElementById('pirBadge');
+    
+    if (data.pirHabilitado !== undefined) {
+        if (data.pirHabilitado === true) {
+            if (togglePIR) togglePIR.classList.add('active');
+            if (pirBadge) pirBadge.innerHTML = '🚪 PIR: ON';
+        } else {
+            if (togglePIR) togglePIR.classList.remove('active');
+            if (pirBadge) pirBadge.innerHTML = '🚪 PIR: OFF';
+        }
+    }
+    
+    // Modo Horario
+    const toggleHorario = document.getElementById('toggleHorario');
+    const horarioBadge = document.getElementById('horarioBadge');
+    
+    if (data.modoHorario !== undefined) {
+        if (data.modoHorario === true) {
+            if (toggleHorario) toggleHorario.classList.add('active');
+            if (horarioBadge) horarioBadge.innerHTML = '⏰ Horario: ON';
+        } else {
+            if (toggleHorario) toggleHorario.classList.remove('active');
+            if (horarioBadge) horarioBadge.innerHTML = '⏰ Horario: OFF';
+        }
+    }
+    
+    // Permiso especial
+    const permisoEstado = document.getElementById('permisoEstado');
+    if (data.permisoEspecial !== undefined && data.tiempoPermiso !== undefined) {
+        if (data.permisoEspecial) {
+            permisoEstado.innerHTML = `🔑 Permiso especial activo por ${data.tiempoPermiso} segundos`;
+            permisoEstado.style.color = '#e67e22';
+        } else {
+            permisoEstado.innerHTML = '';
+        }
+    }
+    
     // Chapa
     const chapaBadge = document.getElementById('chapaBadge');
-    if (chapaBadge && data.chapaActiva !== undefined) {
-        chapaBadge.innerHTML = data.chapaActiva ? '🔐 Chapa: ON' : '🔐 Chapa: OFF';
+    if (chapaBadge && data.chapa !== undefined) {
+        chapaBadge.innerHTML = data.chapa ? '🔐 Chapa: ON' : '🔐 Chapa: OFF';
     }
     
     // MQTT
@@ -173,9 +195,9 @@ function updateConfiguracion(data) {
     
     // Emergencia
     const emergenciaBadge = document.getElementById('emergenciaBadge');
-    if (emergenciaBadge && data.emergenciaActiva !== undefined) {
-        emergenciaBadge.innerHTML = data.emergenciaActiva ? '🛑 EMERGENCIA ACTIVA' : '🛑 Emergencia: OFF';
-        emergenciaBadge.style.background = data.emergenciaActiva ? '#e74c3c' : '#e67e22';
+    if (emergenciaBadge && data.emergencia !== undefined) {
+        emergenciaBadge.innerHTML = data.emergencia ? '🛑 EMERGENCIA ACTIVA' : '🛑 Emergencia: OFF';
+        emergenciaBadge.style.background = data.emergencia ? '#e74c3c' : '#e67e22';
     }
 }
 
@@ -220,6 +242,41 @@ function toggleModoAuto() {
 
 function toggleBotonFisico() {
     enviarComando("TOGGLE_BOTON");
+}
+
+function togglePIR() {
+    enviarComando("TOGGLE_PIR");
+}
+
+function toggleHorario() {
+    enviarComando("TOGGLE_HORARIO");
+}
+
+function activarPermiso() {
+    enviarComando("ACTIVAR_PERMISO");
+}
+
+let emergenciaRemotaActiva = false;
+
+function activarEmergenciaRemotaUI() {
+    enviarComando("ACTIVAR_EMERGENCIA_REMOTA");
+    mostrarMensaje("🛑 Activando emergencia remota...");
+    setTimeout(() => {
+        location.reload();
+    }, 2000);
+}
+
+function desactivarEmergenciaRemotaUI() {
+    const contrasena = document.getElementById('contrasenaEmergencia').value;
+    enviarComando(`DESACTIVAR_EMERGENCIA_REMOTA:${contrasena}`);
+    if (contrasena === "123") {
+        mostrarMensaje("✅ Emergencia remota desactivada");
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+    } else {
+        document.getElementById('errorContrasena').innerHTML = '❌ Contraseña incorrecta';
+    }
 }
 
 function iniciarHeartbeatCheck() {
