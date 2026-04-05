@@ -1,4 +1,5 @@
 let panelAbierto = true;
+let permisoEspecialLocal = false;
 
 function togglePanel() {
     panelAbierto = !panelAbierto;
@@ -25,21 +26,6 @@ function updateConnectionStatus(connected) {
             statusText.innerHTML = '<span class="status-led red"></span> Desconectado';
             statusText.classList.add('disconnected');
             statusText.classList.remove('connected');
-        }
-    }
-}
-
-function updateEsp32Status(online) {
-    const esp32Text = document.getElementById('esp32StatusText');
-    if (esp32Text) {
-        if (online) {
-            esp32Text.innerHTML = '<span class="status-led green"></span> En línea';
-            esp32Text.classList.add('connected');
-            esp32Text.classList.remove('disconnected');
-        } else {
-            esp32Text.innerHTML = '<span class="status-led red"></span> Desconectado';
-            esp32Text.classList.add('disconnected');
-            esp32Text.classList.remove('connected');
         }
     }
 }
@@ -91,39 +77,106 @@ function updateSensores(data) {
     }
 }
 
+// Verificar si estamos dentro del horario laboral (desde el navegador)
+function isHorarioLaboral() {
+    const ahora = new Date();
+    const diaSemana = ahora.getDay();     // 0=Domingo, 1=Lunes...6=Sábado
+    const hora = ahora.getHours();
+    const minutos = ahora.getMinutes();
+    
+    // Solo Lunes a Viernes (1 a 5)
+    if (diaSemana >= 1 && diaSemana <= 5) {
+        const minutosActuales = hora * 60 + minutos;
+        const minutosInicio = CONFIG.horario.inicioHora * 60 + CONFIG.horario.inicioMinuto;
+        const minutosFin = CONFIG.horario.finHora * 60 + CONFIG.horario.finMinuto;
+        return (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
+    }
+    return false;
+}
+
+// Función para habilitar/deshabilitar controles según horario
+function actualizarHabilitacionControles() {
+    const toggles = ['toggleFoto', 'toggleAuto', 'toggleBoton', 'togglePIR', 'toggleHorario'];
+    const btnPermiso = document.getElementById('btnPermiso');
+    const modoHorarioActivo = document.getElementById('toggleHorario').classList.contains('active');
+    
+    let habilitado = false;
+    
+    // Si el usuario desactivó el modo horario manualmente
+    if (!modoHorarioActivo) {
+        habilitado = true;
+    }
+    // Si el permiso especial está activo
+    else if (permisoEspecialLocal) {
+        habilitado = true;
+    }
+    // Si estamos dentro del horario laboral
+    else if (isHorarioLaboral()) {
+        habilitado = true;
+    }
+    // Si no, fuera del horario → deshabilitado
+    else {
+        habilitado = false;
+    }
+    
+    // Aplicar la habilitación/deshabilitación
+    if (habilitado) {
+        toggles.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.remove('disabled');
+            }
+        });
+        if (btnPermiso) {
+            btnPermiso.disabled = true;
+            btnPermiso.classList.add('disabled');
+        }
+    } else {
+        toggles.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.classList.add('disabled');
+            }
+        });
+        if (btnPermiso) {
+            btnPermiso.disabled = false;
+            btnPermiso.classList.remove('disabled');
+        }
+    }
+}
+
 function updateConfiguracion(data) {
     console.log("🔄 Actualizando configuración:", data);
     
+    // Actualizar permiso especial local
+    if (data.permisoEspecial === true) {
+        permisoEspecialLocal = true;
+    } else if (data.permisoEspecial === false && permisoEspecialLocal === true) {
+        permisoEspecialLocal = false;
+    }
+    
     // Fotoeléctrica
     const toggleFoto = document.getElementById('toggleFoto');
-    const fotoVal = document.getElementById('fotoVal');
     const fotoBox = document.getElementById('fotoBox');
-    
     if (data.fotoHabilitado !== undefined) {
         if (data.fotoHabilitado === true) {
             if (toggleFoto) toggleFoto.classList.add('active');
-            if (fotoVal) fotoVal.innerHTML = '✅ HABILITADO';
             if (fotoBox) fotoBox.classList.add('activo');
         } else {
             if (toggleFoto) toggleFoto.classList.remove('active');
-            if (fotoVal) fotoVal.innerHTML = '⚪ DESHABILITADO';
             if (fotoBox) fotoBox.classList.remove('activo');
         }
     }
     
     // Modo Automático
     const toggleAuto = document.getElementById('toggleAuto');
-    const autoVal = document.getElementById('autoVal');
     const autoBox = document.getElementById('autoBox');
-    
     if (data.modoAuto !== undefined) {
         if (data.modoAuto === true) {
             if (toggleAuto) toggleAuto.classList.add('active');
-            if (autoVal) autoVal.innerHTML = '✅ ACTIVADO';
             if (autoBox) autoBox.classList.add('activo');
         } else {
             if (toggleAuto) toggleAuto.classList.remove('active');
-            if (autoVal) autoVal.innerHTML = '⚪ DESACTIVADO';
             if (autoBox) autoBox.classList.remove('activo');
         }
     }
@@ -131,7 +184,6 @@ function updateConfiguracion(data) {
     // Botón Físico
     const toggleBoton = document.getElementById('toggleBoton');
     const botonBadge = document.getElementById('botonBadge');
-    
     if (data.botonFisicoHabilitado !== undefined) {
         if (data.botonFisicoHabilitado === true) {
             if (toggleBoton) toggleBoton.classList.add('active');
@@ -145,7 +197,6 @@ function updateConfiguracion(data) {
     // Sensores PIR
     const togglePIR = document.getElementById('togglePIR');
     const pirBadge = document.getElementById('pirBadge');
-    
     if (data.pirHabilitado !== undefined) {
         if (data.pirHabilitado === true) {
             if (togglePIR) togglePIR.classList.add('active');
@@ -159,7 +210,6 @@ function updateConfiguracion(data) {
     // Modo Horario
     const toggleHorario = document.getElementById('toggleHorario');
     const horarioBadge = document.getElementById('horarioBadge');
-    
     if (data.modoHorario !== undefined) {
         if (data.modoHorario === true) {
             if (toggleHorario) toggleHorario.classList.add('active');
@@ -170,15 +220,15 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Permiso especial
+    // Actualizar habilitación de controles (NAVEGADOR decide)
+    actualizarHabilitacionControles();
+    
+    // Permiso especial UI
     const permisoEstado = document.getElementById('permisoEstado');
-    if (data.permisoEspecial !== undefined && data.tiempoPermiso !== undefined) {
-        if (data.permisoEspecial) {
-            permisoEstado.innerHTML = `🔑 Permiso especial activo por ${data.tiempoPermiso} segundos`;
-            permisoEstado.style.color = '#e67e22';
-        } else {
-            permisoEstado.innerHTML = '';
-        }
+    if (permisoEspecialLocal) {
+        permisoEstado.innerHTML = `🔑 Permiso especial activo`;
+    } else {
+        permisoEstado.innerHTML = '';
     }
     
     // Chapa
@@ -233,7 +283,7 @@ function configurarBotones() {
 }
 
 function toggleSensor(sensor) {
-    enviarComando(sensor === 'foto' ? "TOGGLE_FOTO" : "TOGGLE_MOV");
+    if (sensor === 'foto') enviarComando("TOGGLE_FOTO");
 }
 
 function toggleModoAuto() {
@@ -254,9 +304,9 @@ function toggleHorario() {
 
 function activarPermiso() {
     enviarComando("ACTIVAR_PERMISO");
+    permisoEspecialLocal = true;
+    setTimeout(() => actualizarHabilitacionControles(), 500);
 }
-
-let emergenciaRemotaActiva = false;
 
 function activarEmergenciaRemotaUI() {
     enviarComando("ACTIVAR_EMERGENCIA_REMOTA");
@@ -279,11 +329,38 @@ function desactivarEmergenciaRemotaUI() {
     }
 }
 
+let emergenciaActivaLocal = false;
+let emergenciaRemotaLocal = false;
+
+function mostrarEmergencia(mostrar) {
+    const overlay = document.getElementById('emergenciaOverlay');
+    if (mostrar) {
+        if (!emergenciaActivaLocal) {
+            overlay.style.display = 'flex';
+            emergenciaActivaLocal = true;
+            
+            fetch('/estadoEmergencia').then(r => r.json()).then(d => {
+                if (d.emergenciaRemotaActiva) {
+                    document.getElementById('emergenciaContrasena').style.display = 'block';
+                    document.getElementById('btnRecargarEmergencia').style.display = 'none';
+                } else {
+                    document.getElementById('emergenciaContrasena').style.display = 'none';
+                    document.getElementById('btnRecargarEmergencia').style.display = 'block';
+                }
+            }).catch(e => console.log(e));
+        }
+    } else {
+        if (emergenciaActivaLocal) {
+            overlay.style.display = 'none';
+            emergenciaActivaLocal = false;
+        }
+    }
+}
+
 function iniciarHeartbeatCheck() {
     setInterval(() => {
         if (ultimoHeartbeat > 0 && Date.now() - ultimoHeartbeat > CONFIG.tiempos.heartbeatTimeout) {
             esp32Online = false;
-            updateEsp32Status(false);
         }
     }, 5000);
 }
