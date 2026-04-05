@@ -12,11 +12,5 @@ const CONFIG = {
     },
     tiempos: {
         heartbeatTimeout: 30000
-    },
-    horario: {
-        inicioHora: 7,
-        inicioMinuto: 30,
-        finHora: 14,
-        finMinuto: 0
     }
 };
