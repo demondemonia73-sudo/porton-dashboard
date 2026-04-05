@@ -20,12 +20,8 @@ function updateConnectionStatus(connected) {
     if (statusText) {
         if (connected) {
             statusText.innerHTML = '<span class="status-led green"></span> Conectado';
-            statusText.classList.add('connected');
-            statusText.classList.remove('disconnected');
         } else {
             statusText.innerHTML = '<span class="status-led red"></span> Desconectado';
-            statusText.classList.add('disconnected');
-            statusText.classList.remove('connected');
         }
     }
 }
@@ -77,24 +73,25 @@ function updateSensores(data) {
     }
 }
 
-// Verificar si estamos dentro del horario laboral (desde el navegador)
+// ============================================
+// LÓGICA DE HORARIO (desde el navegador)
+// ============================================
 function isHorarioLaboral() {
     const ahora = new Date();
-    const diaSemana = ahora.getDay();     // 0=Domingo, 1=Lunes...6=Sábado
+    const diaSemana = ahora.getDay();
     const hora = ahora.getHours();
     const minutos = ahora.getMinutes();
     
-    // Solo Lunes a Viernes (1 a 5)
+    // Lunes a Viernes (1 a 5)
     if (diaSemana >= 1 && diaSemana <= 5) {
         const minutosActuales = hora * 60 + minutos;
-        const minutosInicio = CONFIG.horario.inicioHora * 60 + CONFIG.horario.inicioMinuto;
-        const minutosFin = CONFIG.horario.finHora * 60 + CONFIG.horario.finMinuto;
+        const minutosInicio = 7 * 60 + 30;   // 7:30 AM
+        const minutosFin = 14 * 60 + 0;       // 2:00 PM
         return (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
     }
     return false;
 }
 
-// Función para habilitar/deshabilitar controles según horario
 function actualizarHabilitacionControles() {
     const toggles = ['toggleFoto', 'toggleAuto', 'toggleBoton', 'togglePIR', 'toggleHorario'];
     const btnPermiso = document.getElementById('btnPermiso');
@@ -102,24 +99,20 @@ function actualizarHabilitacionControles() {
     
     let habilitado = false;
     
-    // Si el usuario desactivó el modo horario manualmente
+    // Lógica IDÉNTICA al ESP32
     if (!modoHorarioActivo) {
         habilitado = true;
-    }
-    // Si el permiso especial está activo
-    else if (permisoEspecialLocal) {
+    } else if (permisoEspecialLocal) {
         habilitado = true;
-    }
-    // Si estamos dentro del horario laboral
-    else if (isHorarioLaboral()) {
+    } else if (isHorarioLaboral()) {
         habilitado = true;
-    }
-    // Si no, fuera del horario → deshabilitado
-    else {
+    } else {
         habilitado = false;
     }
     
-    // Aplicar la habilitación/deshabilitación
+    console.log("📅 Horario laboral:", isHorarioLaboral());
+    console.log("🔓 Controles habilitados:", habilitado);
+    
     if (habilitado) {
         toggles.forEach(id => {
             const el = document.getElementById(id);
@@ -220,7 +213,7 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Actualizar habilitación de controles (NAVEGADOR decide)
+    // ACTUALIZAR HABILITACIÓN DE CONTROLES (NAVEGADOR decide)
     actualizarHabilitacionControles();
     
     // Permiso especial UI
@@ -330,7 +323,6 @@ function desactivarEmergenciaRemotaUI() {
 }
 
 let emergenciaActivaLocal = false;
-let emergenciaRemotaLocal = false;
 
 function mostrarEmergencia(mostrar) {
     const overlay = document.getElementById('emergenciaOverlay');
@@ -338,16 +330,8 @@ function mostrarEmergencia(mostrar) {
         if (!emergenciaActivaLocal) {
             overlay.style.display = 'flex';
             emergenciaActivaLocal = true;
-            
-            fetch('/estadoEmergencia').then(r => r.json()).then(d => {
-                if (d.emergenciaRemotaActiva) {
-                    document.getElementById('emergenciaContrasena').style.display = 'block';
-                    document.getElementById('btnRecargarEmergencia').style.display = 'none';
-                } else {
-                    document.getElementById('emergenciaContrasena').style.display = 'none';
-                    document.getElementById('btnRecargarEmergencia').style.display = 'block';
-                }
-            }).catch(e => console.log(e));
+            document.getElementById('emergenciaContrasena').style.display = 'block';
+            document.getElementById('btnRecargarEmergencia').style.display = 'none';
         }
     } else {
         if (emergenciaActivaLocal) {
@@ -360,7 +344,7 @@ function mostrarEmergencia(mostrar) {
 function iniciarHeartbeatCheck() {
     setInterval(() => {
         if (ultimoHeartbeat > 0 && Date.now() - ultimoHeartbeat > CONFIG.tiempos.heartbeatTimeout) {
-            esp32Online = false;
+            // ESP32 no responde heartbeat, pero no mostramos nada
         }
     }, 5000);
 }
