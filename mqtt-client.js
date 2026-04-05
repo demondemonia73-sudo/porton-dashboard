@@ -1,6 +1,5 @@
 let client = null;
 let mqttConectado = false;
-let esp32Online = false;
 let ultimoHeartbeat = 0;
 
 function conectarMQTT() {
@@ -36,7 +35,6 @@ function conectarMQTT() {
         console.log("📨 Recibido en tema:", topic);
         
         if (topic === CONFIG.mqtt.topics.heartbeat) {
-            esp32Online = true;
             ultimoHeartbeat = Date.now();
             return;
         }
