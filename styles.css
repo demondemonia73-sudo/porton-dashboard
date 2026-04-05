@@ -121,17 +121,6 @@ h1 {
     width: 150px;
 }
 
-.btn-permiso {
-    background: #e67e22;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 40px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 12px;
-}
-
 /* Reloj */
 .clock {
     background: #f8fafc;
@@ -231,7 +220,7 @@ h1 {
 }
 
 .panel-content {
-    max-height: 300px;
+    max-height: 400px;
     overflow: hidden;
     transition: max-height 0.3s ease;
     padding: 0 16px;
@@ -242,16 +231,23 @@ h1 {
     padding: 0 16px;
 }
 
+/* Grid de dos columnas */
+.controls-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 16px 0;
+}
+
 .control-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 14px 0;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.control-item:last-child {
-    border-bottom: none;
+    padding: 12px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
 }
 
 .control-label {
@@ -260,17 +256,18 @@ h1 {
     gap: 10px;
     font-weight: 500;
     color: #1e293b;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .control-label span {
-    font-size: 20px;
+    font-size: 18px;
 }
 
+/* Toggle VERDE/ROJO */
 .toggle {
     width: 52px;
     height: 28px;
-    background: #cbd5e0;
+    background: #ef4444;
     border-radius: 40px;
     position: relative;
     cursor: pointer;
@@ -279,6 +276,12 @@ h1 {
 
 .toggle.active {
     background: #48bb78;
+}
+
+.toggle.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 .toggle::after {
@@ -296,6 +299,25 @@ h1 {
 
 .toggle.active::after {
     left: 26px;
+}
+
+/* Botón permiso */
+.btn-permiso {
+    background: #e67e22;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 40px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 12px;
+    transition: 0.2s;
+}
+
+.btn-permiso.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #a0aec0;
 }
 
 /* Portón animado */
@@ -432,24 +454,7 @@ h1 {
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
-.btn-emergencia-fisica {
-    background: #f56565;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 40px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 16px;
-    width: 100%;
-    margin: 10px 0;
-    transition: transform 0.1s;
-}
-
-.btn-emergencia-fisica:active {
-    transform: scale(0.97);
-}
-
+/* Emergencia remota */
 .emergencia-remota-panel {
     background: #fee2e2;
     border-radius: 16px;
@@ -477,10 +482,6 @@ h1 {
 
 .btn-emergencia-remota:active {
     transform: scale(0.97);
-}
-
-.btn-emergencia-remota.active {
-    background: #e74c3c;
 }
 
 /* Badges */
@@ -585,5 +586,13 @@ h1 {
         height: 80px;
         font-size: 40px;
         top: -38px;
+    }
+    
+    .controls-grid {
+        gap: 8px;
+    }
+    
+    .control-item {
+        padding: 8px;
     }
 }
