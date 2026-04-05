@@ -9,7 +9,6 @@
     <script src="config.js"></script>
     <script src="mqtt-client.js"></script>
     <script src="ui.js"></script>
-    <script src="emergencia.js"></script>
 </head>
 <body>
 <!-- Pantalla de emergencia persistente -->
@@ -35,18 +34,14 @@
 <div class="container">
     <div class="card">
         <h1>🚪 PORTÓN AUTOMÁTICO</h1>
-        <div class="ip">🔒 192.168.1.200</div>
+        <div class="ip">🔒 Control Remoto v12.0</div>
         
         <div class="clock" id="reloj">--/--/---- --:--:--</div>
         
         <div class="status-grid">
             <div class="status-item">
-                <span class="status-label">🔌 HiveMQ</span>
+                <span class="status-label">🌐 MQTT</span>
                 <span class="status-value" id="statusText">Conectando...</span>
-            </div>
-            <div class="status-item">
-                <span class="status-label">🖥️ ESP32</span>
-                <span class="status-value" id="esp32StatusText">Conectando...</span>
             </div>
         </div>
         
@@ -56,31 +51,33 @@
                 <span class="panel-arrow" id="panelArrow">▼</span>
             </div>
             <div class="panel-content" id="panelContent">
-                <div class="control-item">
-                    <div class="control-label"><span>📷</span> Fotoeléctrica</div>
-                    <div class="toggle" id="toggleFoto" onclick="toggleSensor('foto')"></div>
+                <div class="controls-grid">
+                    <div class="control-item">
+                        <div class="control-label"><span>📷</span> Fotoeléctrica</div>
+                        <div class="toggle" id="toggleFoto" onclick="toggleSensor('foto')"></div>
+                    </div>
+                    <div class="control-item">
+                        <div class="control-label"><span>🤖</span> Modo Automático</div>
+                        <div class="toggle" id="toggleAuto" onclick="toggleModoAuto()"></div>
+                    </div>
+                    <div class="control-item">
+                        <div class="control-label"><span>🎮</span> Botón Físico</div>
+                        <div class="toggle" id="toggleBoton" onclick="toggleBotonFisico()"></div>
+                    </div>
+                    <div class="control-item">
+                        <div class="control-label"><span>🚪</span> Sensores PIR</div>
+                        <div class="toggle" id="togglePIR" onclick="togglePIR()"></div>
+                    </div>
+                    <div class="control-item">
+                        <div class="control-label"><span>⏰</span> Modo Horario</div>
+                        <div class="toggle" id="toggleHorario" onclick="toggleHorario()"></div>
+                    </div>
+                    <div class="control-item">
+                        <div class="control-label"><span>🔑</span> Permiso Especial (1h)</div>
+                        <button class="btn-permiso" id="btnPermiso" onclick="activarPermiso()">ACTIVAR</button>
+                    </div>
                 </div>
-                <div class="control-item">
-                    <div class="control-label"><span>🤖</span> Modo Automático</div>
-                    <div class="toggle" id="toggleAuto" onclick="toggleModoAuto()"></div>
-                </div>
-                <div class="control-item">
-                    <div class="control-label"><span>🎮</span> Botón Físico</div>
-                    <div class="toggle" id="toggleBoton" onclick="toggleBotonFisico()"></div>
-                </div>
-                <div class="control-item">
-                    <div class="control-label"><span>🚪</span> Sensores PIR</div>
-                    <div class="toggle" id="togglePIR" onclick="togglePIR()"></div>
-                </div>
-                <div class="control-item">
-                    <div class="control-label"><span>⏰</span> Modo Horario</div>
-                    <div class="toggle" id="toggleHorario" onclick="toggleHorario()"></div>
-                </div>
-                <div class="control-item">
-                    <div class="control-label"><span>🔑</span> Permiso Especial (1h)</div>
-                    <button class="btn-permiso" id="btnPermiso" onclick="activarPermiso()">ACTIVAR</button>
-                </div>
-                <div id="permisoEstado" style="font-size: 11px; color: #666; margin-top: 8px; text-align:center"></div>
+                <div id="permisoEstado" style="font-size: 11px; color: #e67e22; text-align:center; margin-bottom:12px"></div>
             </div>
         </div>
         
@@ -103,30 +100,16 @@
             </div>
         </div>
         
-        <div class="sensors-row">
-            <div class="sensor-card" id="fotoBox">
-                <div class="sensor-icon">📷</div>
-                <div class="sensor-label">FOTOELÉCTRICA</div>
-                <div class="sensor-value" id="fotoVal">⚪</div>
-            </div>
-            <div class="sensor-card" id="autoBox">
-                <div class="sensor-icon">🤖</div>
-                <div class="sensor-label">MODO AUTOMÁTICO</div>
-                <div class="sensor-value" id="autoVal">⚪</div>
-            </div>
-        </div>
-        
         <div class="button-group">
             <button class="btn btn-primary" id="btnAbrir">🔓 ABRIR</button>
             <button class="btn btn-secondary" id="btnCerrar">🔒 CERRAR</button>
         </div>
         
-        <button class="btn-emergencia-fisica" id="btnEmergenciaFisica" onclick="alert('⚠️ Emergencia física se activa con el botón físico GPIO26')">🔴 EMERGENCIA FÍSICA</button>
-        
         <div class="emergencia-remota-panel">
             <div style="font-weight:bold; margin-bottom:10px">🌐 EMERGENCIA REMOTA</div>
             <div class="emergencia-info" id="emergenciaRemotaEstado">🟢 Emergencia inactiva</div>
             <button class="btn-emergencia-remota" id="btnEmergenciaRemota" onclick="activarEmergenciaRemotaUI()">🛑 ACTIVAR EMERGENCIA REMOTA</button>
+            <button class="btn-emergencia-remota" onclick="desactivarEmergenciaRemotaUI()" style="background:#e67e22; margin-top:8px">🔓 DESACTIVAR EMERGENCIA REMOTA</button>
         </div>
         
         <div class="badges-row">
