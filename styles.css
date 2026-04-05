@@ -42,7 +42,6 @@ h1 {
     margin-bottom: 20px;
 }
 
-/* Pantalla de emergencia */
 .emergencia-overlay {
     position: fixed;
     top: 0;
@@ -121,7 +120,6 @@ h1 {
     width: 150px;
 }
 
-/* Reloj */
 .clock {
     background: #f8fafc;
     border-radius: 20px;
@@ -135,7 +133,6 @@ h1 {
     border: 1px solid #e2e8f0;
 }
 
-/* Status bars */
 .status-grid {
     display: flex;
     gap: 12px;
@@ -184,7 +181,6 @@ h1 {
     box-shadow: 0 0 5px #ef4444;
 }
 
-/* Panel de control */
 .control-panel {
     background: #f8fafc;
     border-radius: 20px;
@@ -231,7 +227,6 @@ h1 {
     padding: 0 16px;
 }
 
-/* Grid de dos columnas */
 .controls-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -263,7 +258,6 @@ h1 {
     font-size: 18px;
 }
 
-/* Toggle VERDE/ROJO */
 .toggle {
     width: 52px;
     height: 28px;
@@ -301,7 +295,6 @@ h1 {
     left: 26px;
 }
 
-/* Botón permiso */
 .btn-permiso {
     background: #e67e22;
     color: white;
@@ -320,7 +313,6 @@ h1 {
     background: #a0aec0;
 }
 
-/* Portón animado */
 .gate-area {
     background: linear-gradient(145deg, #334155, #1e293b);
     border-radius: 24px;
@@ -376,7 +368,6 @@ h1 {
     color: #9a3412;
 }
 
-/* Sensores */
 .sensors-row {
     display: flex;
     gap: 12px;
@@ -416,7 +407,6 @@ h1 {
     font-weight: 700;
 }
 
-/* Botones */
 .button-group {
     display: flex;
     gap: 12px;
@@ -454,7 +444,6 @@ h1 {
     box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
 
-/* Emergencia remota */
 .emergencia-remota-panel {
     background: #fee2e2;
     border-radius: 16px;
@@ -484,7 +473,6 @@ h1 {
     transform: scale(0.97);
 }
 
-/* Badges */
 .badges-row {
     display: flex;
     flex-wrap: wrap;
@@ -533,7 +521,6 @@ h1 {
     color: white;
 }
 
-/* Footer */
 .footer {
     text-align: center;
     font-size: 11px;
@@ -545,7 +532,6 @@ h1 {
     margin-top: 8px;
 }
 
-/* Mensaje flotante */
 .mensaje-flotante {
     position: fixed;
     bottom: 20px;
@@ -563,7 +549,6 @@ h1 {
     transition: opacity 0.3s;
 }
 
-/* Responsive */
 @media (max-width: 480px) {
     .card {
         padding: 20px 16px;
