@@ -38,7 +38,6 @@ function conectarMQTT() {
         if (topic === CONFIG.mqtt.topics.heartbeat) {
             esp32Online = true;
             ultimoHeartbeat = Date.now();
-            updateEsp32Status(true);
             return;
         }
         
