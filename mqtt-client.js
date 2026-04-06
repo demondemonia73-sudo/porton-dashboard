@@ -36,6 +36,9 @@ function conectarMQTT() {
         
         if (topic === CONFIG.mqtt.topics.heartbeat) {
             ultimoHeartbeat = Date.now();
+            if (typeof updateEsp32Status === "function") {
+                updateEsp32Status(true);
+            }
             return;
         }
         
@@ -67,11 +70,13 @@ function conectarMQTT() {
         console.error("❌ MQTT Error:", err);
         mqttConectado = false;
         updateConnectionStatus(false);
+        if (typeof updateEsp32Status === "function") updateEsp32Status(false);
     });
 
     client.on('offline', () => {
         mqttConectado = false;
         updateConnectionStatus(false);
+        if (typeof updateEsp32Status === "function") updateEsp32Status(false);
     });
 }
 
