@@ -73,8 +73,11 @@
                         <div class="toggle" id="toggleHorario" onclick="toggleHorario()"></div>
                     </div>
                     <div class="control-item">
-                        <div class="control-label"><span>🔑</span> Permiso Especial (1h)</div>
-                        <button class="btn-permiso" id="btnPermiso" onclick="activarPermiso()">ACTIVAR</button>
+                        <div class="control-label"><span>🔑</span> Permiso Especial</div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="number" id="permisoMinutos" value="60" min="5" max="120" step="5" style="width: 70px; padding: 6px; border-radius: 20px; border: 1px solid #ccc; text-align: center;">
+                            <button class="btn-permiso" id="btnPermiso" onclick="activarPermisoConTiempo()">ACTIVAR</button>
+                        </div>
                     </div>
                 </div>
                 <div id="permisoEstado" style="font-size: 11px; color: #e67e22; text-align:center; margin-bottom:12px"></div>
@@ -109,7 +112,17 @@
             <div style="font-weight:bold; margin-bottom:10px">🌐 EMERGENCIA REMOTA</div>
             <div class="emergencia-info" id="emergenciaRemotaEstado">🟢 Emergencia inactiva</div>
             <button class="btn-emergencia-remota" id="btnEmergenciaRemota" onclick="activarEmergenciaRemotaUI()">🛑 ACTIVAR EMERGENCIA REMOTA</button>
-            <button class="btn-emergencia-remota" onclick="desactivarEmergenciaRemotaUI()" style="background:#e67e22; margin-top:8px">🔓 DESACTIVAR EMERGENCIA REMOTA</button>
+            <button class="btn-emergencia-remota" onclick="desactivarEmergenciaRemotaUI()">🔓 DESACTIVAR EMERGENCIA REMOTA</button>
+        </div>
+        
+        <!-- Panel ADMIN oculto con contraseña 12345 -->
+        <div class="emergencia-remota-panel" style="margin-top: 15px;">
+            <div style="font-weight:bold; margin-bottom:10px">🔧 ADMINISTRADOR</div>
+            <div class="emergencia-info" id="adminInfo">🔒 Panel oculto - Ingrese contraseña</div>
+            <button class="btn-emergencia-remota" onclick="mostrarAdmin()" style="background:#555;">🔐 ACCESO ADMIN</button>
+            <div id="adminPanel" style="display:none; margin-top:10px;">
+                <button class="btn-emergencia-remota" onclick="abrirTemporalAdmin()" style="background:#e67e22;">🔓 ABRIR TEMPORAL (1 minuto)</button>
+            </div>
         </div>
         
         <div class="badges-row">
