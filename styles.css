@@ -126,17 +126,18 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-.logo-icon {
-    font-size: 32px;
+.logo-icon svg {
+    width: 40px;
+    height: 40px;
 }
 
 .logo-text h2 {
-    font-size: 20px;
+    font-size: 18px;
     margin-bottom: 4px;
 }
 
 .logo-text span {
-    font-size: 11px;
+    font-size: 10px;
     opacity: 0.7;
 }
 
@@ -223,7 +224,7 @@ body {
 
 .header-title p {
     color: var(--gray-400);
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .header-actions {
