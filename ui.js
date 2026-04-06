@@ -1,5 +1,6 @@
 let panelAbierto = true;
 let permisoEspecialLocal = false;
+let adminAutorizado = false;
 
 function togglePanel() {
     panelAbierto = !panelAbierto;
@@ -82,11 +83,10 @@ function isHorarioLaboral() {
     const hora = ahora.getHours();
     const minutos = ahora.getMinutes();
     
-    // Lunes a Viernes (1 a 5)
     if (diaSemana >= 1 && diaSemana <= 5) {
         const minutosActuales = hora * 60 + minutos;
-        const minutosInicio = 7 * 60 + 30;   // 7:30 AM
-        const minutosFin = 14 * 60 + 0;       // 2:00 PM
+        const minutosInicio = 7 * 60 + 30;
+        const minutosFin = 14 * 60 + 0;
         return (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
     }
     return false;
@@ -99,7 +99,6 @@ function actualizarHabilitacionControles() {
     
     let habilitado = false;
     
-    // Lógica IDÉNTICA al ESP32
     if (!modoHorarioActivo) {
         habilitado = true;
     } else if (permisoEspecialLocal) {
@@ -109,9 +108,6 @@ function actualizarHabilitacionControles() {
     } else {
         habilitado = false;
     }
-    
-    console.log("📅 Horario laboral:", isHorarioLaboral());
-    console.log("🔓 Controles habilitados:", habilitado);
     
     if (habilitado) {
         toggles.forEach(id => {
@@ -141,14 +137,12 @@ function actualizarHabilitacionControles() {
 function updateConfiguracion(data) {
     console.log("🔄 Actualizando configuración:", data);
     
-    // Actualizar permiso especial local
     if (data.permisoEspecial === true) {
         permisoEspecialLocal = true;
     } else if (data.permisoEspecial === false && permisoEspecialLocal === true) {
         permisoEspecialLocal = false;
     }
     
-    // Fotoeléctrica
     const toggleFoto = document.getElementById('toggleFoto');
     const fotoBox = document.getElementById('fotoBox');
     if (data.fotoHabilitado !== undefined) {
@@ -161,7 +155,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Modo Automático
     const toggleAuto = document.getElementById('toggleAuto');
     const autoBox = document.getElementById('autoBox');
     if (data.modoAuto !== undefined) {
@@ -174,7 +167,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Botón Físico
     const toggleBoton = document.getElementById('toggleBoton');
     const botonBadge = document.getElementById('botonBadge');
     if (data.botonFisicoHabilitado !== undefined) {
@@ -187,7 +179,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Sensores PIR
     const togglePIR = document.getElementById('togglePIR');
     const pirBadge = document.getElementById('pirBadge');
     if (data.pirHabilitado !== undefined) {
@@ -200,7 +191,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Modo Horario
     const toggleHorario = document.getElementById('toggleHorario');
     const horarioBadge = document.getElementById('horarioBadge');
     if (data.modoHorario !== undefined) {
@@ -213,10 +203,8 @@ function updateConfiguracion(data) {
         }
     }
     
-    // ACTUALIZAR HABILITACIÓN DE CONTROLES (NAVEGADOR decide)
     actualizarHabilitacionControles();
     
-    // Permiso especial UI
     const permisoEstado = document.getElementById('permisoEstado');
     if (permisoEspecialLocal) {
         permisoEstado.innerHTML = `🔑 Permiso especial activo`;
@@ -224,19 +212,16 @@ function updateConfiguracion(data) {
         permisoEstado.innerHTML = '';
     }
     
-    // Chapa
     const chapaBadge = document.getElementById('chapaBadge');
     if (chapaBadge && data.chapa !== undefined) {
         chapaBadge.innerHTML = data.chapa ? '🔐 Chapa: ON' : '🔐 Chapa: OFF';
     }
     
-    // MQTT
     const mqttBadge = document.getElementById('mqttBadge');
     if (mqttBadge && data.mqtt !== undefined) {
         mqttBadge.innerHTML = data.mqtt ? '🌍 MQTT: Conectado' : '🌍 MQTT: Desconectado';
     }
     
-    // Emergencia
     const emergenciaBadge = document.getElementById('emergenciaBadge');
     if (emergenciaBadge && data.emergencia !== undefined) {
         emergenciaBadge.innerHTML = data.emergencia ? '🛑 EMERGENCIA ACTIVA' : '🛑 Emergencia: OFF';
@@ -295,9 +280,11 @@ function toggleHorario() {
     enviarComando("TOGGLE_HORARIO");
 }
 
-function activarPermiso() {
-    enviarComando("ACTIVAR_PERMISO");
+function activarPermisoConTiempo() {
+    let minutos = document.getElementById('permisoMinutos').value;
+    enviarComando(`ACTIVAR_PERMISO:${minutos}`);
     permisoEspecialLocal = true;
+    mostrarMensaje(`🔑 Permiso especial activado por ${minutos} minutos`);
     setTimeout(() => actualizarHabilitacionControles(), 500);
 }
 
@@ -321,6 +308,34 @@ function desactivarEmergenciaRemotaUI() {
         document.getElementById('errorContrasena').innerHTML = '❌ Contraseña incorrecta';
     }
 }
+
+// ==================== FUNCIONES ADMIN ====================
+
+function mostrarAdmin() {
+    let pass = prompt("🔐 Ingrese contraseña de administrador:");
+    if (pass === "12345") {
+        adminAutorizado = true;
+        document.getElementById('adminPanel').style.display = 'block';
+        document.getElementById('adminInfo').innerHTML = '✅ Autorizado - Puede abrir una vez';
+        mostrarMensaje("🔓 Acceso ADMIN concedido (una vez)");
+    } else {
+        alert("❌ Contraseña incorrecta");
+    }
+}
+
+function abrirTemporalAdmin() {
+    if (!adminAutorizado) {
+        alert("❌ No autorizado. Ingrese la contraseña primero.");
+        return;
+    }
+    enviarComando("ADMIN_ABRIR");
+    mostrarMensaje("🔓 Portón abierto por 1 minuto");
+    document.getElementById('adminPanel').style.display = 'none';
+    adminAutorizado = false;
+    document.getElementById('adminInfo').innerHTML = '🔒 Panel oculto - Ingrese contraseña';
+}
+
+// ==================== FIN FUNCIONES ADMIN ====================
 
 let emergenciaActivaLocal = false;
 
