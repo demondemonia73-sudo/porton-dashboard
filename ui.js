@@ -74,9 +74,6 @@ function updateSensores(data) {
     }
 }
 
-// ============================================
-// LÓGICA DE HORARIO (desde el navegador)
-// ============================================
 function isHorarioLaboral() {
     const ahora = new Date();
     const diaSemana = ahora.getDay();
@@ -288,27 +285,6 @@ function activarPermisoConTiempo() {
     setTimeout(() => actualizarHabilitacionControles(), 500);
 }
 
-function activarEmergenciaRemotaUI() {
-    enviarComando("ACTIVAR_EMERGENCIA_REMOTA");
-    mostrarMensaje("🛑 Activando emergencia remota...");
-    setTimeout(() => {
-        location.reload();
-    }, 2000);
-}
-
-function desactivarEmergenciaRemotaUI() {
-    const contrasena = document.getElementById('contrasenaEmergencia').value;
-    enviarComando(`DESACTIVAR_EMERGENCIA_REMOTA:${contrasena}`);
-    if (contrasena === "123") {
-        mostrarMensaje("✅ Emergencia remota desactivada");
-        setTimeout(() => {
-            location.reload();
-        }, 1500);
-    } else {
-        document.getElementById('errorContrasena').innerHTML = '❌ Contraseña incorrecta';
-    }
-}
-
 // ==================== FUNCIONES ADMIN ====================
 
 function mostrarAdmin() {
@@ -336,6 +312,27 @@ function abrirTemporalAdmin() {
 }
 
 // ==================== FIN FUNCIONES ADMIN ====================
+
+function activarEmergenciaRemotaUI() {
+    enviarComando("ACTIVAR_EMERGENCIA_REMOTA");
+    mostrarMensaje("🛑 Activando emergencia remota...");
+    setTimeout(() => {
+        location.reload();
+    }, 2000);
+}
+
+function desactivarEmergenciaRemotaUI() {
+    const contrasena = document.getElementById('contrasenaEmergencia').value;
+    enviarComando(`DESACTIVAR_EMERGENCIA_REMOTA:${contrasena}`);
+    if (contrasena === "123") {
+        mostrarMensaje("✅ Emergencia remota desactivada");
+        setTimeout(() => {
+            location.reload();
+        }, 1500);
+    } else {
+        document.getElementById('errorContrasena').innerHTML = '❌ Contraseña incorrecta';
+    }
+}
 
 let emergenciaActivaLocal = false;
 
