@@ -353,10 +353,25 @@ function mostrarEmergencia(mostrar) {
     }
 }
 
+// ==================== ESTADO DEL ESP32 ====================
+
+function updateEsp32Status(online) {
+    const esp32Status = document.getElementById('esp32StatusText');
+    if (esp32Status) {
+        if (online) {
+            esp32Status.innerHTML = '<span class="status-led green"></span> Conectado';
+        } else {
+            esp32Status.innerHTML = '<span class="status-led red"></span> Conectando...';
+        }
+    }
+}
+
+// ==================== HEARTBEAT CHECK ====================
+
 function iniciarHeartbeatCheck() {
     setInterval(() => {
         if (ultimoHeartbeat > 0 && Date.now() - ultimoHeartbeat > CONFIG.tiempos.heartbeatTimeout) {
-            // ESP32 no responde heartbeat, pero no mostramos nada
+            updateEsp32Status(false);
         }
     }, 5000);
 }
