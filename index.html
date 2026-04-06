@@ -21,19 +21,10 @@
     <aside class="sidebar" id="sidebar">
         <div class="logo">
             <div class="logo-icon">
-                <svg width="40" height="40" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="100" height="100" rx="20" fill="#1e3c72"/>
-                    <circle cx="50" cy="35" r="12" fill="white"/>
-                    <rect x="35" y="50" width="30" height="35" rx="5" fill="white"/>
-                    <rect x="42" y="55" width="16" height="8" rx="2" fill="#1e3c72"/>
-                    <rect x="42" y="68" width="16" height="8" rx="2" fill="#1e3c72"/>
-                    <path d="M50 20 L50 12" stroke="white" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M40 25 L35 20" stroke="white" stroke-width="3" stroke-linecap="round"/>
-                    <path d="M60 25 L65 20" stroke="white" stroke-width="3" stroke-linecap="round"/>
-                </svg>
+                <img src="https://www.itibb.edu.bo/_astro/inf.BYqDzbDZ_2nvtHD.webp" alt="Logo Informática Industrial ITIBB" style="width: 45px; height: 45px; object-fit: contain;">
             </div>
             <div class="logo-text">
-                <h2>Info Industrial</h2>
+                <h2>Informática Industrial</h2>
                 <span>Control del Portón</span>
             </div>
         </div>
@@ -124,6 +115,7 @@
             </div>
             <div class="gate-status" id="estadoPorton">Cargando...</div>
 
+            <!-- SOLO SENSORES DE FINAL DE CARRERA (los necesarios) -->
             <div class="sensors-row">
                 <div class="sensor-card" id="sensorAbiertoBox">
                     <div class="sensor-icon">🔓</div>
@@ -134,19 +126,6 @@
                     <div class="sensor-icon">🔒</div>
                     <div class="sensor-label">FINAL CERRADO</div>
                     <div class="sensor-value" id="sensorCerradoVal">⚪</div>
-                </div>
-            </div>
-
-            <div class="sensors-row">
-                <div class="sensor-card" id="fotoBox">
-                    <div class="sensor-icon">📷</div>
-                    <div class="sensor-label">FOTOELÉCTRICA</div>
-                    <div class="sensor-value" id="fotoVal">⚪</div>
-                </div>
-                <div class="sensor-card" id="autoBox">
-                    <div class="sensor-icon">🤖</div>
-                    <div class="sensor-label">MODO AUTOMÁTICO</div>
-                    <div class="sensor-value" id="autoVal">⚪</div>
                 </div>
             </div>
 
