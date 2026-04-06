@@ -74,20 +74,25 @@ function updateSensores(data) {
     }
 }
 
+// ==================== LÓGICA DE HORARIO (MISMA QUE EL ESP32) ====================
+
 function isHorarioLaboral() {
     const ahora = new Date();
-    const diaSemana = ahora.getDay();
+    const diaSemana = ahora.getDay();     // 0=Domingo, 1=Lunes...6=Sábado
     const hora = ahora.getHours();
     const minutos = ahora.getMinutes();
     
+    // Solo Lunes a Viernes (1 a 5)
     if (diaSemana >= 1 && diaSemana <= 5) {
         const minutosActuales = hora * 60 + minutos;
-        const minutosInicio = 7 * 60 + 30;
-        const minutosFin = 14 * 60 + 0;
+        const minutosInicio = 7 * 60 + 30;   // 7:30 AM
+        const minutosFin = 14 * 60 + 0;       // 2:00 PM
         return (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
     }
     return false;
 }
+
+// ==================== CONTROL DE HABILITACIÓN DE TOGGLES ====================
 
 function actualizarHabilitacionControles() {
     const toggles = ['toggleFoto', 'toggleAuto', 'toggleBoton', 'togglePIR', 'toggleHorario'];
@@ -96,15 +101,19 @@ function actualizarHabilitacionControles() {
     
     let habilitado = false;
     
+    // Lógica IDÉNTICA al ESP32
     if (!modoHorarioActivo) {
-        habilitado = true;
+        habilitado = true;                      // Modo horario desactivado manualmente
     } else if (permisoEspecialLocal) {
-        habilitado = true;
+        habilitado = true;                      // Permiso especial activo
     } else if (isHorarioLaboral()) {
-        habilitado = true;
+        habilitado = true;                      // Dentro del horario laboral
     } else {
-        habilitado = false;
+        habilitado = false;                     // Fuera del horario → DESHABILITADO
     }
+    
+    console.log("📅 Horario laboral:", isHorarioLaboral());
+    console.log("🔓 Controles habilitados:", habilitado);
     
     if (habilitado) {
         toggles.forEach(id => {
@@ -131,7 +140,7 @@ function actualizarHabilitacionControles() {
     }
 }
 
-// ==================== FUNCIÓN PRINCIPAL CORREGIDA ====================
+// ==================== FUNCIÓN PRINCIPAL DE ACTUALIZACIÓN ====================
 
 function updateConfiguracion(data) {
     console.log("🔄 Actualizando configuración:", data);
@@ -150,14 +159,12 @@ function updateConfiguracion(data) {
         if (data.fotoHabilitado === true) {
             toggleFoto.classList.add('active');
             if (fotoBox) fotoBox.classList.add('activo');
-            console.log("📷 Foto -> ACTIVADO (clase active añadida)");
+            console.log("📷 Foto -> ACTIVADO");
         } else if (data.fotoHabilitado === false) {
             toggleFoto.classList.remove('active');
             if (fotoBox) fotoBox.classList.remove('activo');
-            console.log("📷 Foto -> DESACTIVADO (clase active removida)");
+            console.log("📷 Foto -> DESACTIVADO");
         }
-    } else {
-        console.warn("⚠️ toggleFoto no encontrado");
     }
     
     // ===== MODO AUTOMÁTICO =====
@@ -220,7 +227,7 @@ function updateConfiguracion(data) {
         }
     }
     
-    // ===== ACTUALIZAR HABILITACIÓN =====
+    // ===== ACTUALIZAR HABILITACIÓN DE CONTROLES =====
     actualizarHabilitacionControles();
     
     // ===== PERMISO ESPECIAL UI =====
@@ -251,6 +258,50 @@ function updateConfiguracion(data) {
     }
     
     console.log("✅ updateConfiguracion completado");
+}
+
+// ==================== VERIFICACIÓN PERIÓDICA DEL HORARIO ====================
+
+function verificarYActualizarEstado() {
+    const horarioActivo = isHorarioLaboral();
+    const modoHorarioActivo = document.getElementById('toggleHorario').classList.contains('active');
+    
+    let controlesHabilitados = false;
+    
+    if (!modoHorarioActivo) {
+        controlesHabilitados = true;
+    } else if (permisoEspecialLocal) {
+        controlesHabilitados = true;
+    } else if (horarioActivo) {
+        controlesHabilitados = true;
+    } else {
+        controlesHabilitados = false;
+    }
+    
+    const toggles = ['toggleFoto', 'toggleAuto', 'toggleBoton', 'togglePIR', 'toggleHorario'];
+    const btnPermiso = document.getElementById('btnPermiso');
+    
+    if (controlesHabilitados) {
+        toggles.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('disabled');
+        });
+        if (btnPermiso) {
+            btnPermiso.disabled = true;
+            btnPermiso.classList.add('disabled');
+        }
+    } else {
+        toggles.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('disabled');
+        });
+        if (btnPermiso) {
+            btnPermiso.disabled = false;
+            btnPermiso.classList.remove('disabled');
+        }
+    }
+    
+    console.log("📅 Verificación periódica - Controles habilitados:", controlesHabilitados);
 }
 
 // ==================== RESTO DE FUNCIONES ====================
@@ -390,7 +441,7 @@ function updateEsp32Status(online) {
         if (online) {
             esp32Status.innerHTML = '<span class="status-led green"></span> Conectado';
         } else {
-            esp32Status.innerHTML = '<span class=" status-led red"></span> Conectando...';
+            esp32Status.innerHTML = '<span class="status-led red"></span> Conectando...';
         }
     }
 }
@@ -404,3 +455,9 @@ function iniciarHeartbeatCheck() {
         }
     }, 5000);
 }
+
+// ==================== INICIALIZACIÓN ====================
+
+// Verificar estado cada minuto
+setInterval(verificarYActualizarEstado, 60000);
+verificarYActualizarEstado();
