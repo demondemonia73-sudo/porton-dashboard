@@ -120,6 +120,12 @@ function actualizarHabilitacionControles() {
             const el = document.getElementById(id);
             if (el) {
                 el.classList.remove('disabled');
+                // Restaurar onclick
+                if (id === 'toggleFoto') el.onclick = () => toggleSensor('foto');
+                else if (id === 'toggleAuto') el.onclick = () => toggleModoAuto();
+                else if (id === 'toggleBoton') el.onclick = () => toggleBotonFisico();
+                else if (id === 'togglePIR') el.onclick = () => togglePIR();
+                else if (id === 'toggleHorario') el.onclick = () => toggleHorario();
             }
         });
         if (btnPermiso) {
@@ -131,6 +137,8 @@ function actualizarHabilitacionControles() {
             const el = document.getElementById(id);
             if (el) {
                 el.classList.add('disabled');
+                // Eliminar onclick para que no se pueda clickear
+                el.onclick = null;
             }
         });
         if (btnPermiso) {
@@ -159,11 +167,9 @@ function updateConfiguracion(data) {
         if (data.fotoHabilitado === true) {
             toggleFoto.classList.add('active');
             if (fotoBox) fotoBox.classList.add('activo');
-            console.log("📷 Foto -> ACTIVADO");
         } else if (data.fotoHabilitado === false) {
             toggleFoto.classList.remove('active');
             if (fotoBox) fotoBox.classList.remove('activo');
-            console.log("📷 Foto -> DESACTIVADO");
         }
     }
     
@@ -174,11 +180,9 @@ function updateConfiguracion(data) {
         if (data.modoAuto === true) {
             toggleAuto.classList.add('active');
             if (autoBox) autoBox.classList.add('activo');
-            console.log("🤖 Auto -> ACTIVADO");
         } else if (data.modoAuto === false) {
             toggleAuto.classList.remove('active');
             if (autoBox) autoBox.classList.remove('activo');
-            console.log("🤖 Auto -> DESACTIVADO");
         }
     }
     
@@ -189,11 +193,9 @@ function updateConfiguracion(data) {
         if (data.botonFisicoHabilitado === true) {
             toggleBoton.classList.add('active');
             if (botonBadge) botonBadge.innerHTML = '🎮 Botón: ON';
-            console.log("🎮 Botón -> ACTIVADO");
         } else if (data.botonFisicoHabilitado === false) {
             toggleBoton.classList.remove('active');
             if (botonBadge) botonBadge.innerHTML = '🎮 Botón: OFF';
-            console.log("🎮 Botón -> DESACTIVADO");
         }
     }
     
@@ -204,11 +206,9 @@ function updateConfiguracion(data) {
         if (data.pirHabilitado === true) {
             togglePIR.classList.add('active');
             if (pirBadge) pirBadge.innerHTML = '🚪 PIR: ON';
-            console.log("🚪 PIR -> ACTIVADO");
         } else if (data.pirHabilitado === false) {
             togglePIR.classList.remove('active');
             if (pirBadge) pirBadge.innerHTML = '🚪 PIR: OFF';
-            console.log("🚪 PIR -> DESACTIVADO");
         }
     }
     
@@ -219,11 +219,9 @@ function updateConfiguracion(data) {
         if (data.modoHorario === true) {
             toggleHorario.classList.add('active');
             if (horarioBadge) horarioBadge.innerHTML = '⏰ Horario: ON';
-            console.log("⏰ Horario -> ACTIVADO");
         } else if (data.modoHorario === false) {
             toggleHorario.classList.remove('active');
             if (horarioBadge) horarioBadge.innerHTML = '⏰ Horario: OFF';
-            console.log("⏰ Horario -> DESACTIVADO");
         }
     }
     
@@ -256,52 +254,6 @@ function updateConfiguracion(data) {
         emergenciaBadge.innerHTML = data.emergencia ? '🛑 EMERGENCIA ACTIVA' : '🛑 Emergencia: OFF';
         emergenciaBadge.style.background = data.emergencia ? '#e74c3c' : '#e67e22';
     }
-    
-    console.log("✅ updateConfiguracion completado");
-}
-
-// ==================== VERIFICACIÓN PERIÓDICA DEL HORARIO ====================
-
-function verificarYActualizarEstado() {
-    const horarioActivo = isHorarioLaboral();
-    const modoHorarioActivo = document.getElementById('toggleHorario').classList.contains('active');
-    
-    let controlesHabilitados = false;
-    
-    if (!modoHorarioActivo) {
-        controlesHabilitados = true;
-    } else if (permisoEspecialLocal) {
-        controlesHabilitados = true;
-    } else if (horarioActivo) {
-        controlesHabilitados = true;
-    } else {
-        controlesHabilitados = false;
-    }
-    
-    const toggles = ['toggleFoto', 'toggleAuto', 'toggleBoton', 'togglePIR', 'toggleHorario'];
-    const btnPermiso = document.getElementById('btnPermiso');
-    
-    if (controlesHabilitados) {
-        toggles.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.remove('disabled');
-        });
-        if (btnPermiso) {
-            btnPermiso.disabled = true;
-            btnPermiso.classList.add('disabled');
-        }
-    } else {
-        toggles.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.classList.add('disabled');
-        });
-        if (btnPermiso) {
-            btnPermiso.disabled = false;
-            btnPermiso.classList.remove('disabled');
-        }
-    }
-    
-    console.log("📅 Verificación periódica - Controles habilitados:", controlesHabilitados);
 }
 
 // ==================== RESTO DE FUNCIONES ====================
@@ -456,8 +408,10 @@ function iniciarHeartbeatCheck() {
     }, 5000);
 }
 
-// ==================== INICIALIZACIÓN ====================
+// ==================== VERIFICACIÓN PERIÓDICA ====================
 
-// Verificar estado cada minuto
-setInterval(verificarYActualizarEstado, 60000);
-verificarYActualizarEstado();
+// Verificar cada minuto si cambió el horario
+setInterval(() => {
+    actualizarHabilitacionControles();
+}, 60000);
+actualizarHabilitacionControles();
