@@ -17,8 +17,8 @@
 </head>
 <body>
 <div class="app-container">
-    <!-- Sidebar -->
-    <aside class="sidebar closed" id="sidebar">
+    <!-- Sidebar - SIN la clase "closed" para que se vea en PC -->
+    <aside class="sidebar" id="sidebar">
         <div class="logo">
             <div class="logo-icon">
                 <img src="https://www.itibb.edu.bo/_astro/inf.BYqDzbDZ_2nvtHD.webp" alt="Logo ITIBB">
@@ -266,14 +266,12 @@
     const overlay = document.getElementById('sidebarOverlay');
     
     function openSidebarFunc() {
-        sidebar.classList.remove('closed');
         sidebar.classList.add('open');
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
     
     function closeSidebarFunc() {
-        sidebar.classList.add('closed');
         sidebar.classList.remove('open');
         overlay.classList.remove('active');
         document.body.style.overflow = '';
