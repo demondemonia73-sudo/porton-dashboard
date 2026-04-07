@@ -42,7 +42,7 @@
                 <span class="nav-icon">⚙️</span>
                 <span>Configuración</span>
             </a>
-            <a href="https://demondemonia73-sudo.github.io/porton-monitor-secondary/" class="nav-item" target="_blank">
+            <a href="https://demondemonia73-sudo.github.io/porton-monitor-secondary/" class="nav-item">
                 <span class="nav-icon">📈</span>
                 <span>Mantenimiento Predictivo</span>
             </a>
@@ -298,7 +298,6 @@
         // Modo oscuro
         const darkModeToggle = document.getElementById('darkModeToggle');
         if (darkModeToggle) {
-            // Cargar preferencia guardada
             const darkMode = localStorage.getItem('darkMode') === 'true';
             darkModeToggle.checked = darkMode;
             if (darkMode) document.body.classList.add('dark-mode');
@@ -347,7 +346,7 @@
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
             const view = item.dataset.view;
-            if (!view) return; // Si es enlace externo, no hacer nada
+            if (!view) return;
             
             e.preventDefault();
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
