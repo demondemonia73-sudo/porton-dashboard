@@ -317,7 +317,9 @@
         }
         
         // Cargar historial al inicio
-        actualizarTablaHistorial();
+        if (typeof actualizarTablaHistorial === "function") {
+            actualizarTablaHistorial();
+        }
     };
 
     // Sidebar control
