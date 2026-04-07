@@ -18,10 +18,10 @@
 <body>
 <div class="app-container">
     <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
+    <aside class="sidebar closed" id="sidebar">
         <div class="logo">
             <div class="logo-icon">
-                <img src="https://www.itibb.edu.bo/_astro/inf.BYqDzbDZ_2nvtHD.webp" alt="Logo Informática Industrial ITIBB" style="width: 45px; height: 45px; object-fit: contain;">
+                <img src="https://www.itibb.edu.bo/_astro/inf.BYqDzbDZ_2nvtHD.webp" alt="Logo ITIBB" style="width: 45px; height: 45px; object-fit: contain;">
             </div>
             <div class="logo-text">
                 <h2>Informática Industrial</h2>
@@ -99,7 +99,7 @@
                         </div>
                         <div class="control-item">
                             <div class="control-label"><span>🔑</span> Permiso Especial</div>
-                            <div class="permiso-control">
+                            <div style="display: flex; gap: 8px; align-items: center;">
                                 <input type="number" id="permisoMinutos" value="60" min="5" max="120" step="5">
                                 <button class="btn-permiso" id="btnPermiso" onclick="activarPermisoConTiempo()">ACTIVAR</button>
                             </div>
@@ -115,7 +115,6 @@
             </div>
             <div class="gate-status" id="estadoPorton">Cargando...</div>
 
-            <!-- SOLO SENSORES DE FINAL DE CARRERA (los necesarios) -->
             <div class="sensors-row">
                 <div class="sensor-card" id="sensorAbiertoBox">
                     <div class="sensor-icon">🔓</div>
@@ -141,7 +140,6 @@
                 <button class="btn-emergencia-remota" onclick="desactivarEmergenciaRemotaUI()">🔓 DESACTIVAR EMERGENCIA REMOTA</button>
             </div>
 
-            <!-- Panel ADMIN oculto -->
             <div class="emergencia-remota-panel" style="margin-top: 15px;">
                 <div style="font-weight:bold; margin-bottom:10px">🔧 ADMINISTRADOR</div>
                 <div class="emergencia-info" id="adminInfo">🔒 Panel oculto - Ingrese contraseña</div>
@@ -199,19 +197,21 @@
         iniciarHeartbeatCheck();
     };
 
-    // Sidebar
+    // Sidebar control
     const sidebar = document.getElementById('sidebar');
     const openSidebar = document.getElementById('openSidebar');
     const closeSidebar = document.getElementById('closeSidebar');
     const overlay = document.getElementById('sidebarOverlay');
     
     function openSidebarFunc() {
+        sidebar.classList.remove('closed');
         sidebar.classList.add('open');
         overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
     
     function closeSidebarFunc() {
+        sidebar.classList.add('closed');
         sidebar.classList.remove('open');
         overlay.classList.remove('active');
         document.body.style.overflow = '';
@@ -222,7 +222,9 @@
     if (overlay) overlay.onclick = closeSidebarFunc;
     
     window.addEventListener('resize', () => {
-        if (window.innerWidth > 1024) closeSidebarFunc();
+        if (window.innerWidth > 1024) {
+            closeSidebarFunc();
+        }
     });
 </script>
 </body>
