@@ -1,6 +1,7 @@
 let client = null;
 let mqttConectado = false;
 let ultimoHeartbeat = 0;
+let emergenciaRemotaLocal = false;
 
 function conectarMQTT() {
     const options = {
@@ -42,12 +43,24 @@ function conectarMQTT() {
             return;
         }
         
+        // Procesar emergencia
         if (payload.includes('"emergenciaActiva":true')) {
-            mostrarEmergencia(true);
+            // Verificar si es emergencia remota
+            if (payload.includes('"emergenciaRemotaActiva":true')) {
+                emergenciaRemotaLocal = true;
+            } else {
+                emergenciaRemotaLocal = false;
+            }
+            if (typeof mostrarEmergencia === "function") {
+                mostrarEmergencia(true);
+            }
             return;
         }
         if (payload.includes('"emergenciaActiva":false')) {
-            mostrarEmergencia(false);
+            emergenciaRemotaLocal = false;
+            if (typeof mostrarEmergencia === "function") {
+                mostrarEmergencia(false);
+            }
             return;
         }
         
@@ -55,12 +68,20 @@ function conectarMQTT() {
             const data = JSON.parse(payload);
             if (topic === CONFIG.mqtt.topics.estado) {
                 console.log("📊 Estado recibido:", data);
-                if (data.estado) updatePortonUI(data.estado);
-                updateConfiguracion(data);
+                if (data.estado && typeof updatePortonUI === "function") {
+                    updatePortonUI(data.estado);
+                }
+                if (typeof updateConfiguracion === "function") {
+                    updateConfiguracion(data);
+                }
             } else if (topic === CONFIG.mqtt.topics.sensores) {
-                updateSensores(data);
+                if (typeof updateSensores === "function") {
+                    updateSensores(data);
+                }
             }
-            actualizarTimestamp();
+            if (typeof actualizarTimestamp === "function") {
+                actualizarTimestamp();
+            }
         } catch(e) {
             console.warn("Error parseando JSON:", payload);
         }
