@@ -21,17 +21,35 @@
     <aside class="sidebar closed" id="sidebar">
         <div class="logo">
             <div class="logo-icon">
-                <img src="https://www.itibb.edu.bo/_astro/inf.BYqDzbDZ_2nvtHD.webp" alt="Logo ITIBB" style="width: 45px; height: 45px; object-fit: contain;">
+                <img src="https://www.itibb.edu.bo/_astro/inf.BYqDzbDZ_2nvtHD.webp" alt="Logo ITIBB">
             </div>
             <div class="logo-text">
-                <h2>Informática Industrial</h2>
+                <h2>SmartGate</h2>
                 <span>Control del Portón</span>
             </div>
         </div>
         <button class="close-sidebar" id="closeSidebar">✕</button>
         <nav class="nav-menu">
-            <a href="#" class="nav-item active" data-view="dashboard">📊 Panel Principal</a>
+            <a href="#" class="nav-item active" data-view="dashboard">
+                <span class="nav-icon">📊</span>
+                <span>Panel Principal</span>
+            </a>
+            <a href="#" class="nav-item" data-view="history">
+                <span class="nav-icon">📜</span>
+                <span>Historial</span>
+            </a>
+            <a href="#" class="nav-item" data-view="settings">
+                <span class="nav-icon">⚙️</span>
+                <span>Configuración</span>
+            </a>
         </nav>
+        <div class="user-info">
+            <div class="user-avatar">👤</div>
+            <div class="user-details">
+                <span class="user-name">Administrador</span>
+                <span class="user-role">Control del Portón</span>
+            </div>
+        </div>
         <div class="mqtt-status" id="mqttStatusSidebar">
             <div class="status-indicator offline"></div>
             <div class="status-text">Desconectado</div>
@@ -42,6 +60,7 @@
     <button class="open-sidebar" id="openSidebar">☰</button>
 
     <main class="main-content">
+        <!-- Vista Dashboard -->
         <div id="dashboardView" class="view active">
             <div class="top-header">
                 <div class="header-title">
@@ -165,6 +184,49 @@
                 <div class="local-link">🏠 Acceso local: <strong>http://192.168.1.200</strong></div>
             </div>
         </div>
+
+        <!-- Vista Historial -->
+        <div id="historyView" class="view">
+            <div class="settings-panel">
+                <h2>📜 Historial de Eventos</h2>
+                <div class="history-table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha/Hora</th>
+                                <th>Evento</th>
+                                <th>Detalle</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyBody">
+                            <tr><td colspan="3">Cargando historial...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vista Configuración -->
+        <div id="settingsView" class="view">
+            <div class="settings-panel">
+                <h2>⚙️ Configuración</h2>
+                <div class="settings-group">
+                    <h3>Apariencia</h3>
+                    <div class="setting-item">
+                        <label>🌙 Modo Oscuro</label>
+                        <label class="switch">
+                            <input type="checkbox" id="darkModeToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="settings-group">
+                    <h3>Acerca de</h3>
+                    <p>Versión: 2.0.0</p>
+                    <p>Sistema de control de portón automático</p>
+                </div>
+            </div>
+        </div>
     </main>
 </div>
 
@@ -225,6 +287,21 @@
         if (window.innerWidth > 1024) {
             closeSidebarFunc();
         }
+    });
+
+    // Navegación entre vistas
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const view = item.dataset.view;
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(view + 'View').classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            item.classList.add('active');
+            if (window.innerWidth <= 1024) {
+                closeSidebarFunc();
+            }
+        });
     });
 </script>
 </body>
