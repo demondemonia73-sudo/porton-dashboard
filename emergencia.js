@@ -8,7 +8,6 @@ function mostrarEmergencia(mostrar) {
             overlay.style.display = 'flex';
             emergenciaActivaLocal = true;
             
-            // Verificar si es emergencia remota (necesita contraseña)
             fetch('/estadoEmergencia').then(r => r.json()).then(d => {
                 if (d.emergenciaRemotaActiva) {
                     document.getElementById('emergenciaContrasena').style.display = 'block';
