@@ -3,6 +3,16 @@ let permisoEspecialLocal = false;
 let adminAutorizado = false;
 let sincronizado = false;
 
+// Variables para evitar duplicados en el historial
+let ultimoEstadoPorton = null;
+let ultimoFoto = null;
+let ultimoAuto = null;
+let ultimoBoton = null;
+let ultimoPIR = null;
+let ultimoHorario = null;
+let ultimoPermisoEspecial = null;
+let ultimoEmergencia = null;
+
 function togglePanel() {
     panelAbierto = !panelAbierto;
     const content = document.getElementById('panelContent');
@@ -37,10 +47,18 @@ function updatePortonUI(estado) {
         textoDiv.innerHTML = '✅ PORTÓN ABIERTO';
         textoDiv.className = 'gate-status abierto';
         puerta.style.left = 'calc(100% - 90px)';
+        if (ultimoEstadoPorton !== "ABIERTO") {
+            registrarEvento('PORTÓN_ABIERTO', 'El portón se abrió');
+            ultimoEstadoPorton = "ABIERTO";
+        }
     } else if (estado === "CERRADO") {
         textoDiv.innerHTML = '🔒 PORTÓN CERRADO';
         textoDiv.className = 'gate-status cerrado';
         puerta.style.left = '12px';
+        if (ultimoEstadoPorton !== "CERRADO") {
+            registrarEvento('PORTÓN_CERRADO', 'El portón se cerró');
+            ultimoEstadoPorton = "CERRADO";
+        }
     } else {
         textoDiv.innerHTML = '⚠️ PORTÓN ENTREABIERTO';
         textoDiv.className = 'gate-status intermedio';
@@ -163,61 +181,123 @@ function updateConfiguracion(data) {
     
     if (data.permisoEspecial === true) {
         permisoEspecialLocal = true;
+        if (ultimoPermisoEspecial !== true) {
+            registrarEvento('PERMISO_ESPECIAL', 'Permiso especial activado');
+            ultimoPermisoEspecial = true;
+        }
     } else if (data.permisoEspecial === false && permisoEspecialLocal === true) {
         permisoEspecialLocal = false;
+        if (ultimoPermisoEspecial !== false) {
+            registrarEvento('PERMISO_ESPECIAL', 'Permiso especial desactivado');
+            ultimoPermisoEspecial = false;
+        }
     }
     
+    if (data.emergencia !== undefined && data.emergencia !== ultimoEmergencia) {
+        if (data.emergencia) {
+            registrarEvento('EMERGENCIA', 'Emergencia activada');
+        } else {
+            registrarEvento('EMERGENCIA', 'Emergencia desactivada');
+        }
+        ultimoEmergencia = data.emergencia;
+    }
+    
+    // Fotoeléctrica
     const toggleFoto = document.getElementById('toggleFoto');
     if (toggleFoto) {
         if (data.fotoHabilitado === true) {
             toggleFoto.classList.add('active');
-        } else {
+            if (ultimoFoto !== true) {
+                registrarEvento('TOGGLE_FOTO', 'Activado');
+                ultimoFoto = true;
+            }
+        } else if (data.fotoHabilitado === false) {
             toggleFoto.classList.remove('active');
+            if (ultimoFoto !== false) {
+                registrarEvento('TOGGLE_FOTO', 'Desactivado');
+                ultimoFoto = false;
+            }
         }
     }
     
+    // Modo Automático
     const toggleAuto = document.getElementById('toggleAuto');
     if (toggleAuto) {
         if (data.modoAuto === true) {
             toggleAuto.classList.add('active');
-        } else {
+            if (ultimoAuto !== true) {
+                registrarEvento('TOGGLE_AUTO', 'Activado');
+                ultimoAuto = true;
+            }
+        } else if (data.modoAuto === false) {
             toggleAuto.classList.remove('active');
+            if (ultimoAuto !== false) {
+                registrarEvento('TOGGLE_AUTO', 'Desactivado');
+                ultimoAuto = false;
+            }
         }
     }
     
+    // Botón Físico
     const toggleBoton = document.getElementById('toggleBoton');
     const botonBadge = document.getElementById('botonBadge');
     if (toggleBoton) {
         if (data.botonFisicoHabilitado === true) {
             toggleBoton.classList.add('active');
             if (botonBadge) botonBadge.innerHTML = '🎮 Botón: ON';
-        } else {
+            if (ultimoBoton !== true) {
+                registrarEvento('TOGGLE_BOTON', 'Activado');
+                ultimoBoton = true;
+            }
+        } else if (data.botonFisicoHabilitado === false) {
             toggleBoton.classList.remove('active');
             if (botonBadge) botonBadge.innerHTML = '🎮 Botón: OFF';
+            if (ultimoBoton !== false) {
+                registrarEvento('TOGGLE_BOTON', 'Desactivado');
+                ultimoBoton = false;
+            }
         }
     }
     
+    // Sensores PIR
     const togglePIR = document.getElementById('togglePIR');
     const pirBadge = document.getElementById('pirBadge');
     if (togglePIR) {
         if (data.pirHabilitado === true) {
             togglePIR.classList.add('active');
             if (pirBadge) pirBadge.innerHTML = '🚪 PIR: ON';
-        } else {
+            if (ultimoPIR !== true) {
+                registrarEvento('TOGGLE_PIR', 'Activado');
+                ultimoPIR = true;
+            }
+        } else if (data.pirHabilitado === false) {
             togglePIR.classList.remove('active');
             if (pirBadge) pirBadge.innerHTML = '🚪 PIR: OFF';
+            if (ultimoPIR !== false) {
+                registrarEvento('TOGGLE_PIR', 'Desactivado');
+                ultimoPIR = false;
+            }
         }
     }
     
+    // Modo Horario
     const toggleHorario = document.getElementById('toggleHorario');
     const horarioBadge = document.getElementById('horarioBadge');
     if (toggleHorario) {
         if (data.modoHorario === true) {
             toggleHorario.classList.add('active');
             if (horarioBadge) horarioBadge.innerHTML = '⏰ Horario: ON';
-        } else {
+            if (ultimoHorario !== true) {
+                registrarEvento('TOGGLE_HORARIO', 'Activado');
+                ultimoHorario = true;
+            }
+        } else if (data.modoHorario === false) {
             toggleHorario.classList.remove('active');
             if (horarioBadge) horarioBadge.innerHTML = '⏰ Horario: OFF';
+            if (ultimoHorario !== false) {
+                registrarEvento('TOGGLE_HORARIO', 'Desactivado');
+                ultimoHorario = false;
+            }
         }
     }
     
@@ -396,3 +476,118 @@ setInterval(() => {
         actualizarHabilitacionControles();
     }
 }, 60000);
+
+// ==================== HISTORIAL DE EVENTOS ====================
+
+function registrarEvento(tipo, detalle) {
+    const evento = {
+        id: Date.now(),
+        timestamp: new Date().toISOString(),
+        fecha: new Date().toLocaleString('es-ES'),
+        tipo: tipo,
+        detalle: detalle
+    };
+    
+    let historial = JSON.parse(localStorage.getItem('historial_porton') || '[]');
+    historial.unshift(evento);
+    if (historial.length > 500) historial.pop();
+    localStorage.setItem('historial_porton', JSON.stringify(historial));
+    
+    actualizarTablaHistorial();
+    
+    if (document.getElementById('soundEnabled')?.checked) {
+        const audio = document.getElementById('notificationSound');
+        if (audio) audio.play().catch(e => console.log('Error:', e));
+    }
+}
+
+function actualizarTablaHistorial() {
+    const tbody = document.getElementById('historyBody');
+    if (!tbody) return;
+    
+    const historial = JSON.parse(localStorage.getItem('historial_porton') || '[]');
+    const filtroTipo = document.getElementById('eventTypeFilter')?.value || 'all';
+    const fechaDesde = document.getElementById('dateFrom')?.value;
+    const fechaHasta = document.getElementById('dateTo')?.value;
+    
+    let eventosFiltrados = [...historial];
+    
+    if (filtroTipo !== 'all') {
+        eventosFiltrados = eventosFiltrados.filter(e => e.tipo === filtroTipo);
+    }
+    
+    if (fechaDesde) {
+        eventosFiltrados = eventosFiltrados.filter(e => e.timestamp >= fechaDesde);
+    }
+    if (fechaHasta) {
+        eventosFiltrados = eventosFiltrados.filter(e => e.timestamp <= fechaHasta + 'T23:59:59');
+    }
+    
+    if (eventosFiltrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3">No hay eventos registrados</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = eventosFiltrados.map(e => `
+        <tr>
+            <td>${e.fecha}</td>
+            <td><span class="event-badge event-${e.tipo.toLowerCase()}">${e.tipo}</span></td>
+            <td>${e.detalle}</td>
+        </tr>
+    `).join('');
+    
+    actualizarEstadisticasHistorial(historial);
+}
+
+function actualizarEstadisticasHistorial(historial) {
+    const totalEvents = document.getElementById('totalEvents');
+    const monthEvents = document.getElementById('monthEvents');
+    const avgDaily = document.getElementById('avgDaily');
+    
+    if (totalEvents) totalEvents.innerHTML = historial.length;
+    
+    if (monthEvents) {
+        const ahora = new Date();
+        const mesActual = ahora.getMonth();
+        const añoActual = ahora.getFullYear();
+        const eventosMes = historial.filter(e => {
+            const fecha = new Date(e.timestamp);
+            return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+        });
+        monthEvents.innerHTML = eventosMes.length;
+    }
+    
+    if (avgDaily && historial.length > 0) {
+        const primerEvento = new Date(historial[historial.length - 1].timestamp);
+        const dias = Math.ceil((Date.now() - primerEvento) / (1000 * 60 * 60 * 24)) || 1;
+        const promedio = (historial.length / dias).toFixed(1);
+        avgDaily.innerHTML = promedio;
+    }
+}
+
+function filterHistory() {
+    actualizarTablaHistorial();
+}
+
+function resetFilters() {
+    const dateFrom = document.getElementById('dateFrom');
+    const dateTo = document.getElementById('dateTo');
+    const eventTypeFilter = document.getElementById('eventTypeFilter');
+    if (dateFrom) dateFrom.value = '';
+    if (dateTo) dateTo.value = '';
+    if (eventTypeFilter) eventTypeFilter.value = 'all';
+    actualizarTablaHistorial();
+}
+
+function clearEventsWithPassword() {
+    const password = prompt("🔐 Ingrese la contraseña de administrador para eliminar el historial:");
+    if (password === "12345") {
+        if (confirm('¿Está seguro de eliminar TODO el historial de eventos? Esta acción no se puede deshacer.')) {
+            localStorage.setItem('historial_porton', '[]');
+            actualizarTablaHistorial();
+            mostrarMensaje('🗑️ Historial eliminado correctamente');
+        }
+    } else if (password !== null) {
+        alert("❌ Contraseña incorrecta");
+    }
+}
