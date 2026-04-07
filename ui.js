@@ -74,19 +74,18 @@ function updateSensores(data) {
     }
 }
 
-// ==================== LÓGICA DE HORARIO (MISMA QUE EL ESP32) ====================
+// ==================== LÓGICA DE HORARIO ====================
 
 function isHorarioLaboral() {
     const ahora = new Date();
-    const diaSemana = ahora.getDay();     // 0=Domingo, 1=Lunes...6=Sábado
+    const diaSemana = ahora.getDay();
     const hora = ahora.getHours();
     const minutos = ahora.getMinutes();
     
-    // Solo Lunes a Viernes (1 a 5)
     if (diaSemana >= 1 && diaSemana <= 5) {
         const minutosActuales = hora * 60 + minutos;
-        const minutosInicio = 7 * 60 + 30;   // 7:30 AM
-        const minutosFin = 14 * 60 + 0;       // 2:00 PM
+        const minutosInicio = 7 * 60 + 30;
+        const minutosFin = 14 * 60 + 0;
         return (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
     }
     return false;
@@ -101,19 +100,19 @@ function actualizarHabilitacionControles() {
     
     let habilitado = false;
     
-    // Lógica IDÉNTICA al ESP32
     if (!modoHorarioActivo) {
-        habilitado = true;                      // Modo horario desactivado manualmente
+        habilitado = true;
     } else if (permisoEspecialLocal) {
-        habilitado = true;                      // Permiso especial activo
+        habilitado = true;
     } else if (isHorarioLaboral()) {
-        habilitado = true;                      // Dentro del horario laboral
+        habilitado = true;
     } else {
-        habilitado = false;                     // Fuera del horario → DESHABILITADO
+        habilitado = false;
     }
     
-    console.log("📅 Horario laboral:", isHorarioLaboral());
-    console.log("🔓 Controles habilitados:", habilitado);
+    console.log("📅 Controles habilitados:", habilitado);
+    console.log("   Permiso especial:", permisoEspecialLocal);
+    console.log("   Horario laboral:", isHorarioLaboral());
     
     if (habilitado) {
         toggles.forEach(id => {
@@ -148,41 +147,41 @@ function actualizarHabilitacionControles() {
     }
 }
 
-// ==================== FUNCIÓN PRINCIPAL DE ACTUALIZACIÓN ====================
+// ==================== ACTUALIZAR CONFIGURACIÓN DEL ESP32 ====================
 
 function updateConfiguracion(data) {
-    console.log("🔄 Actualizando configuración:", data);
+    console.log("🔄 Actualizando configuración desde ESP32:", data);
     
     // Actualizar permiso especial local
     if (data.permisoEspecial === true) {
         permisoEspecialLocal = true;
+        console.log("🔑 Permiso especial ACTIVADO");
     } else if (data.permisoEspecial === false && permisoEspecialLocal === true) {
         permisoEspecialLocal = false;
+        console.log("🔒 Permiso especial DESACTIVADO");
     }
     
     // ===== FOTOELÉCTRICA =====
     const toggleFoto = document.getElementById('toggleFoto');
-    const fotoBox = document.getElementById('fotoBox');
     if (toggleFoto) {
         if (data.fotoHabilitado === true) {
             toggleFoto.classList.add('active');
-            if (fotoBox) fotoBox.classList.add('activo');
+            console.log("📷 Foto -> ACTIVADO (verde)");
         } else if (data.fotoHabilitado === false) {
             toggleFoto.classList.remove('active');
-            if (fotoBox) fotoBox.classList.remove('activo');
+            console.log("📷 Foto -> DESACTIVADO (rojo)");
         }
     }
     
     // ===== MODO AUTOMÁTICO =====
     const toggleAuto = document.getElementById('toggleAuto');
-    const autoBox = document.getElementById('autoBox');
     if (toggleAuto) {
         if (data.modoAuto === true) {
             toggleAuto.classList.add('active');
-            if (autoBox) autoBox.classList.add('activo');
+            console.log("🤖 Auto -> ACTIVADO");
         } else if (data.modoAuto === false) {
             toggleAuto.classList.remove('active');
-            if (autoBox) autoBox.classList.remove('activo');
+            console.log("🤖 Auto -> DESACTIVADO");
         }
     }
     
@@ -193,9 +192,11 @@ function updateConfiguracion(data) {
         if (data.botonFisicoHabilitado === true) {
             toggleBoton.classList.add('active');
             if (botonBadge) botonBadge.innerHTML = '🎮 Botón: ON';
+            console.log("🎮 Botón -> ACTIVADO");
         } else if (data.botonFisicoHabilitado === false) {
             toggleBoton.classList.remove('active');
             if (botonBadge) botonBadge.innerHTML = '🎮 Botón: OFF';
+            console.log("🎮 Botón -> DESACTIVADO");
         }
     }
     
@@ -206,9 +207,11 @@ function updateConfiguracion(data) {
         if (data.pirHabilitado === true) {
             togglePIR.classList.add('active');
             if (pirBadge) pirBadge.innerHTML = '🚪 PIR: ON';
+            console.log("🚪 PIR -> ACTIVADO");
         } else if (data.pirHabilitado === false) {
             togglePIR.classList.remove('active');
             if (pirBadge) pirBadge.innerHTML = '🚪 PIR: OFF';
+            console.log("🚪 PIR -> DESACTIVADO");
         }
     }
     
@@ -219,9 +222,11 @@ function updateConfiguracion(data) {
         if (data.modoHorario === true) {
             toggleHorario.classList.add('active');
             if (horarioBadge) horarioBadge.innerHTML = '⏰ Horario: ON';
+            console.log("⏰ Horario -> ACTIVADO");
         } else if (data.modoHorario === false) {
             toggleHorario.classList.remove('active');
             if (horarioBadge) horarioBadge.innerHTML = '⏰ Horario: OFF';
+            console.log("⏰ Horario -> DESACTIVADO");
         }
     }
     
@@ -254,6 +259,8 @@ function updateConfiguracion(data) {
         emergenciaBadge.innerHTML = data.emergencia ? '🛑 EMERGENCIA ACTIVA' : '🛑 Emergencia: OFF';
         emergenciaBadge.style.background = data.emergencia ? '#e74c3c' : '#e67e22';
     }
+    
+    console.log("✅ updateConfiguracion completado");
 }
 
 // ==================== RESTO DE FUNCIONES ====================
@@ -407,11 +414,3 @@ function iniciarHeartbeatCheck() {
         }
     }, 5000);
 }
-
-// ==================== VERIFICACIÓN PERIÓDICA ====================
-
-// Verificar cada minuto si cambió el horario
-setInterval(() => {
-    actualizarHabilitacionControles();
-}, 60000);
-actualizarHabilitacionControles();
