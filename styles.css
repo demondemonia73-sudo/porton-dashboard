@@ -27,6 +27,7 @@ body {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
     min-height: 100vh;
     overflow-x: hidden;
+    transition: background 0.3s ease;
 }
 
 .app-container {
@@ -979,6 +980,68 @@ input:checked + .slider:before {
     font-weight: 600;
 }
 
+.history-filters {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.filter-input {
+    padding: 10px 16px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.history-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.stat-mini {
+    background: rgba(255,255,255,0.1);
+    padding: 10px 16px;
+    border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+}
+
+.stat-mini span {
+    font-size: 13px;
+    color: var(--gray-400);
+}
+
+.stat-mini strong {
+    font-size: 18px;
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
 /* ========== MENSAJE FLOTANTE ========== */
 .mensaje-flotante {
     position: fixed;
@@ -995,6 +1058,253 @@ input:checked + .slider:before {
     max-width: 90%;
     text-align: center;
     display: none;
+}
+
+/* ========== MODO OSCURO / CLARO ========== */
+
+/* Modo claro (por defecto, el body ya tiene fondo oscuro, así que invertimos) */
+body.light-mode {
+    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+
+body.light-mode .main-content {
+    color: #1e293b;
+}
+
+body.light-mode .control-item {
+    background: white;
+    border-color: #e2e8f0;
+}
+
+body.light-mode .control-label {
+    color: #1e293b;
+}
+
+body.light-mode .clock {
+    background: white;
+    border-color: #e2e8f0;
+    color: #1e293b;
+}
+
+body.light-mode .status-item {
+    background: white;
+    border-color: #e2e8f0;
+    color: #1e293b;
+}
+
+body.light-mode .status-label {
+    color: #64748b;
+}
+
+body.light-mode .badge {
+    background: #e2e8f0;
+    color: #1e293b;
+}
+
+body.light-mode .gate-status {
+    background: white;
+    color: #1e293b;
+}
+
+body.light-mode .gate-status.abierto {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+body.light-mode .gate-status.cerrado {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+body.light-mode .gate-status.intermedio {
+    background: #fed7aa;
+    color: #9a3412;
+}
+
+body.light-mode .sensor-card {
+    background: white;
+    border-color: #e2e8f0;
+    color: #1e293b;
+}
+
+body.light-mode .sensor-card.activo {
+    background: #dcfce7;
+}
+
+body.light-mode .btn-icon {
+    background: white;
+    border-color: #e2e8f0;
+    color: #1e293b;
+}
+
+body.light-mode .btn-icon:hover {
+    background: #f1f5f9;
+}
+
+body.light-mode .settings-panel {
+    background: white;
+    color: #1e293b;
+}
+
+body.light-mode .settings-group {
+    background: #f8fafc;
+}
+
+body.light-mode .setting-item {
+    border-bottom-color: #e2e8f0;
+}
+
+body.light-mode .history-table {
+    background: white;
+    color: #1e293b;
+}
+
+body.light-mode .history-table th {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+body.light-mode .history-table td {
+    border-bottom-color: #e2e8f0;
+}
+
+body.light-mode .filter-input {
+    background: white;
+    border-color: #e2e8f0;
+    color: #1e293b;
+}
+
+body.light-mode .stat-mini {
+    background: #f1f5f9;
+}
+
+body.light-mode .stat-mini span {
+    color: #64748b;
+}
+
+body.light-mode .stat-mini strong {
+    color: #1e293b;
+}
+
+/* Modo oscuro (activo por defecto) */
+body.dark-mode {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+body.dark-mode .control-item {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .control-label {
+    color: #e2e8f0;
+}
+
+body.dark-mode .clock {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .status-item {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .status-label {
+    color: #94a3b8;
+}
+
+body.dark-mode .badge {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .gate-status {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+body.dark-mode .gate-status.abierto {
+    background: rgba(16, 185, 129, 0.2);
+    color: #86efac;
+}
+
+body.dark-mode .gate-status.cerrado {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+}
+
+body.dark-mode .gate-status.intermedio {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+}
+
+body.dark-mode .sensor-card {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .sensor-card.activo {
+    background: rgba(16, 185, 129, 0.2);
+}
+
+body.dark-mode .btn-icon {
+    background: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+body.dark-mode .btn-icon:hover {
+    background: #334155;
+}
+
+body.dark-mode .settings-panel {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+body.dark-mode .settings-group {
+    background: #0f172a;
+}
+
+body.dark-mode .setting-item {
+    border-bottom-color: #334155;
+}
+
+body.dark-mode .history-table {
+    background: #1e293b;
+    color: #e2e8f0;
+}
+
+body.dark-mode .history-table th {
+    background: #0f172a;
+    color: #e2e8f0;
+}
+
+body.dark-mode .history-table td {
+    border-bottom-color: #334155;
+}
+
+body.dark-mode .filter-input {
+    background: #334155;
+    border-color: #475569;
+    color: #e2e8f0;
+}
+
+body.dark-mode .stat-mini {
+    background: #334155;
+}
+
+body.dark-mode .stat-mini span {
+    color: #94a3b8;
+}
+
+body.dark-mode .stat-mini strong {
+    color: #e2e8f0;
 }
 
 /* ========== RESPONSIVE ========== */
