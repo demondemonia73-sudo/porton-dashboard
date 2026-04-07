@@ -17,7 +17,7 @@
 </head>
 <body>
 <div class="app-container">
-    <!-- Sidebar - SIN la clase "closed" para que se vea en PC -->
+    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="logo">
             <div class="logo-icon">
@@ -41,6 +41,10 @@
             <a href="#" class="nav-item" data-view="settings">
                 <span class="nav-icon">⚙️</span>
                 <span>Configuración</span>
+            </a>
+            <a href="https://demondemonia73-sudo.github.io/porton-monitor-secondary/" class="nav-item" target="_blank">
+                <span class="nav-icon">📈</span>
+                <span>Mantenimiento Predictivo</span>
             </a>
         </nav>
         <div class="user-info">
@@ -189,13 +193,40 @@
         <div id="historyView" class="view">
             <div class="settings-panel">
                 <h2>📜 Historial de Eventos</h2>
+                
+                <div class="history-filters">
+                    <input type="date" id="dateFrom" class="filter-input">
+                    <input type="date" id="dateTo" class="filter-input">
+                    <select id="eventTypeFilter" class="filter-input">
+                        <option value="all">Todos los eventos</option>
+                        <option value="PORTÓN_ABIERTO">Aperturas</option>
+                        <option value="PORTÓN_CERRADO">Cierres</option>
+                        <option value="EMERGENCIA">Emergencias</option>
+                        <option value="PERMISO_ESPECIAL">Permisos especiales</option>
+                        <option value="TOGGLE_FOTO">Fotoeléctrica</option>
+                        <option value="TOGGLE_AUTO">Modo Automático</option>
+                        <option value="TOGGLE_BOTON">Botón Físico</option>
+                        <option value="TOGGLE_PIR">Sensores PIR</option>
+                        <option value="TOGGLE_HORARIO">Modo Horario</option>
+                        <option value="ADMIN_ABRIR">Administrador</option>
+                    </select>
+                    <button onclick="filterHistory()" class="btn-primary">Filtrar</button>
+                    <button onclick="resetFilters()" class="btn-secondary">Limpiar</button>
+                </div>
+                
+                <div class="history-stats">
+                    <div class="stat-mini"><span>📊 Total eventos</span><strong id="totalEvents">0</strong></div>
+                    <div class="stat-mini"><span>📅 Este mes</span><strong id="monthEvents">0</strong></div>
+                    <div class="stat-mini"><span>📈 Promedio diario</span><strong id="avgDaily">0</strong></div>
+                </div>
+                
                 <div class="history-table-container">
                     <table class="history-table">
                         <thead>
                             <tr>
-                                <th>Fecha/Hora</th>
-                                <th>Evento</th>
-                                <th>Detalle</th>
+                                <th>📅 Fecha/Hora</th>
+                                <th>🏷️ Evento</th>
+                                <th>📝 Detalle</th>
                             </tr>
                         </thead>
                         <tbody id="historyBody">
@@ -203,6 +234,8 @@
                         </tbody>
                     </table>
                 </div>
+                
+                <button onclick="clearEvents()" class="btn-danger" style="margin-top:20px">🗑️ Eliminar todo el historial</button>
             </div>
         </div>
 
@@ -210,20 +243,24 @@
         <div id="settingsView" class="view">
             <div class="settings-panel">
                 <h2>⚙️ Configuración</h2>
+                
                 <div class="settings-group">
                     <h3>Apariencia</h3>
                     <div class="setting-item">
-                        <label>🌙 Modo Oscuro</label>
+                        <label>🌙 Modo Oscuro / Claro</label>
                         <label class="switch">
                             <input type="checkbox" id="darkModeToggle">
                             <span class="slider"></span>
                         </label>
                     </div>
                 </div>
+                
                 <div class="settings-group">
                     <h3>Acerca de</h3>
                     <p>Versión: 2.0.0</p>
                     <p>Sistema de control de portón automático</p>
+                    <p>Instituto Tecnológico Industrial Brasil Bolivia</p>
+                    <p>Informática Industrial</p>
                 </div>
             </div>
         </div>
@@ -257,6 +294,25 @@
         conectarMQTT();
         configurarBotones();
         iniciarHeartbeatCheck();
+        
+        // Modo oscuro
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (darkModeToggle) {
+            // Cargar preferencia guardada
+            const darkMode = localStorage.getItem('darkMode') === 'true';
+            darkModeToggle.checked = darkMode;
+            if (darkMode) document.body.classList.add('dark-mode');
+            
+            darkModeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    document.body.classList.add('dark-mode');
+                    localStorage.setItem('darkMode', 'true');
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    localStorage.setItem('darkMode', 'false');
+                }
+            });
+        }
     };
 
     // Sidebar control
@@ -290,8 +346,10 @@
     // Navegación entre vistas
     document.querySelectorAll('.nav-item').forEach(item => {
         item.addEventListener('click', (e) => {
-            e.preventDefault();
             const view = item.dataset.view;
+            if (!view) return; // Si es enlace externo, no hacer nada
+            
+            e.preventDefault();
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.getElementById(view + 'View').classList.add('active');
             document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
