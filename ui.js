@@ -43,6 +43,8 @@ function updatePortonUI(estado) {
     const puerta = document.getElementById('puerta');
     if (!textoDiv || !puerta) return;
     
+    console.log("🚪 Actualizando UI del portón:", estado);
+    
     if (estado === "ABIERTO") {
         textoDiv.innerHTML = '✅ PORTÓN ABIERTO';
         textoDiv.className = 'gate-status abierto';
@@ -140,6 +142,10 @@ function actualizarHabilitacionControles() {
         habilitado = false;
     }
     
+    console.log("📅 Controles habilitados:", habilitado);
+    console.log("   Permiso especial:", permisoEspecialLocal);
+    console.log("   Horario laboral:", isHorarioLaboral());
+    
     if (habilitado) {
         toggles.forEach(id => {
             const el = document.getElementById(id);
@@ -179,6 +185,11 @@ function updateConfiguracion(data) {
         console.log("✅ Dashboard sincronizado con ESP32");
     }
     
+    // Actualizar estado del portón visualmente
+    if (data.e) {
+        updatePortonUI(data.e);
+    }
+    
     if (data.permisoEspecial === true) {
         permisoEspecialLocal = true;
         if (ultimoPermisoEspecial !== true) {
@@ -193,11 +204,14 @@ function updateConfiguracion(data) {
         }
     }
     
+    // Emergencia
     if (data.emergencia !== undefined && data.emergencia !== ultimoEmergencia) {
         if (data.emergencia) {
             registrarEvento('EMERGENCIA', 'Emergencia activada');
+            mostrarEmergencia(true);
         } else {
             registrarEvento('EMERGENCIA', 'Emergencia desactivada');
+            mostrarEmergencia(false);
         }
         ultimoEmergencia = data.emergencia;
     }
@@ -415,9 +429,6 @@ function abrirTemporalAdmin() {
 function activarEmergenciaRemotaUI() {
     enviarComando("ACTIVAR_EMERGENCIA_REMOTA");
     mostrarMensaje("🛑 Activando emergencia remota...");
-    setTimeout(() => {
-        location.reload();
-    }, 2000);
 }
 
 function desactivarEmergenciaRemotaUI() {
@@ -441,8 +452,18 @@ function mostrarEmergencia(mostrar) {
         if (!emergenciaActivaLocal) {
             overlay.style.display = 'flex';
             emergenciaActivaLocal = true;
-            document.getElementById('emergenciaContrasena').style.display = 'block';
-            document.getElementById('btnRecargarEmergencia').style.display = 'none';
+            // Verificar si es emergencia remota
+            if (emergenciaRemotaLocal) {
+                document.getElementById('emergenciaContrasena').style.display = 'block';
+                document.getElementById('btnRecargarEmergencia').style.display = 'none';
+            } else {
+                document.getElementById('emergenciaContrasena').style.display = 'none';
+                document.getElementById('btnRecargarEmergencia').style.display = 'block';
+                // Recargar después de 3 segundos para emergencia física
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
+            }
         }
     } else {
         if (emergenciaActivaLocal) {
