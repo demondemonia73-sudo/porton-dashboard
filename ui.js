@@ -2,6 +2,7 @@ let panelAbierto = true;
 let permisoEspecialLocal = false;
 let adminAutorizado = false;
 let sincronizado = false;
+let emergenciaRemotaLocal = false;  // ← MOVIDA AL PRINCIPIO
 
 // Variables para evitar duplicados en el historial
 let ultimoEstadoPorton = null;
@@ -435,7 +436,6 @@ function activarPermisoConTiempo() {
     enviarComando(`ACTIVAR_PERMISO:${minutos}`);
     permisoEspecialLocal = true;
     mostrarMensaje(`🔑 Permiso especial activado por ${minutos} minutos`);
-    // Forzar actualización de controles
     setTimeout(() => {
         actualizarHabilitacionControles();
     }, 500);
@@ -484,7 +484,6 @@ function desactivarEmergenciaRemotaUI() {
 }
 
 let emergenciaActivaLocal = false;
-let emergenciaRemotaLocal = false;
 
 function mostrarEmergencia(mostrar) {
     const overlay = document.getElementById('emergenciaOverlay');
@@ -657,21 +656,9 @@ function clearEventsWithPassword() {
         if (confirm('¿Está seguro de eliminar TODO el historial de eventos? Esta acción no se puede deshacer.')) {
             localStorage.setItem('historial_porton', '[]');
             actualizarTablaHistorial();
-            mostrarMensage('🗑️ Historial eliminado correctamente');
+            mostrarMensaje('🗑️ Historial eliminado correctamente');
         }
     } else if (password !== null) {
         alert("❌ Contraseña incorrecta");
-    }
-}
-
-// Función auxiliar
-function mostrarMensage(msg, duration = 3000) {
-    const msgDiv = document.getElementById('mensajeFlotante');
-    if (msgDiv) {
-        msgDiv.innerHTML = msg;
-        msgDiv.style.display = 'block';
-        setTimeout(() => {
-            msgDiv.style.display = 'none';
-        }, duration);
     }
 }
