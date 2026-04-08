@@ -110,11 +110,8 @@ function isHorarioLaboral() {
         const minutosActuales = hora * 60 + minutos;
         const minutosInicio = 7 * 60 + 30;
         const minutosFin = 14 * 60 + 0;
-        const activo = (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
-        console.log(`📅 Horario: ${hora}:${minutos} - ${activo ? 'DENTRO' : 'FUERA'} del horario laboral`);
-        return activo;
+        return (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
     }
-    console.log(`📅 Fin de semana - FUERA del horario laboral`);
     return false;
 }
 
@@ -142,21 +139,13 @@ function actualizarHabilitacionControles() {
     
     if (!modoHorarioActivo) {
         habilitado = true;
-        console.log("🔓 Modo horario DESACTIVADO manualmente - Controles HABILITADOS");
     } else if (permisoEspecialLocal === true) {
         habilitado = true;
-        console.log("🔑 Permiso especial ACTIVO - Controles HABILITADOS");
     } else if (isHorarioLaboral()) {
         habilitado = true;
-        console.log("📅 DENTRO del horario laboral - Controles HABILITADOS");
     } else {
         habilitado = false;
-        console.log("⏰ FUERA del horario laboral - Controles DESHABILITADOS");
     }
-    
-    console.log("   ➤ permisoEspecialLocal:", permisoEspecialLocal);
-    console.log("   ➤ modoHorarioActivo:", modoHorarioActivo);
-    console.log("   ➤ Controles habilitados:", habilitado);
     
     if (habilitado) {
         toggles.forEach(id => {
@@ -189,165 +178,144 @@ function actualizarHabilitacionControles() {
     }
 }
 
+// ==================== FUNCIÓN PRINCIPAL QUE PROCESA LOS MENSAJES MQTT ====================
+
+function procesarMensajeMQTT(topic, mensaje) {
+    console.log("📨 Topic:", topic);
+    console.log("📦 Mensaje completo:", mensaje);
+    
+    if (topic === "porton/estado") {
+        // Actualizar estado del portón
+        if (mensaje.estado) {
+            updatePortonUI(mensaje.estado);
+        }
+        
+        // ACTUALIZAR TOGGLES - Usando los mismos IDs que el HTML
+        const toggleFoto = document.getElementById("toggleFoto");
+        if (toggleFoto) {
+            if (mensaje.fotoHabilitado === true) {
+                toggleFoto.classList.add('active');
+            } else {
+                toggleFoto.classList.remove('active');
+            }
+            console.log("📷 Foto actualizada:", mensaje.fotoHabilitado);
+        } else {
+            console.error("❌ No encuentro el elemento 'toggleFoto'");
+        }
+        
+        const toggleAuto = document.getElementById("toggleAuto");
+        if (toggleAuto) {
+            if (mensaje.modoAuto === true) {
+                toggleAuto.classList.add('active');
+            } else {
+                toggleAuto.classList.remove('active');
+            }
+            console.log("🤖 Auto actualizado:", mensaje.modoAuto);
+        }
+        
+        const toggleBoton = document.getElementById("toggleBoton");
+        if (toggleBoton) {
+            if (mensaje.botonFisicoHabilitado === true) {
+                toggleBoton.classList.add('active');
+            } else {
+                toggleBoton.classList.remove('active');
+            }
+            console.log("🎮 Botón actualizado:", mensaje.botonFisicoHabilitado);
+        }
+        
+        const togglePIR = document.getElementById("togglePIR");
+        if (togglePIR) {
+            if (mensaje.pirHabilitado === true) {
+                togglePIR.classList.add('active');
+            } else {
+                togglePIR.classList.remove('active');
+            }
+            console.log("🚪 PIR actualizado:", mensaje.pirHabilitado);
+        }
+        
+        const toggleHorario = document.getElementById("toggleHorario");
+        if (toggleHorario) {
+            if (mensaje.modoHorario === true) {
+                toggleHorario.classList.add('active');
+            } else {
+                toggleHorario.classList.remove('active');
+            }
+            console.log("⏰ Horario actualizado:", mensaje.modoHorario);
+        }
+        
+        // Actualizar badges
+        const chapaBadge = document.getElementById('chapaBadge');
+        if (chapaBadge) {
+            chapaBadge.innerHTML = mensaje.chapaActiva ? '🔐 Chapa: ON' : '🔐 Chapa: OFF';
+        }
+        
+        const mqttBadge = document.getElementById('mqttBadge');
+        if (mqttBadge) {
+            mqttBadge.innerHTML = '🌍 MQTT: Conectado';
+        }
+        
+        const emergenciaBadge = document.getElementById('emergenciaBadge');
+        if (emergenciaBadge) {
+            if (mensaje.emergenciaActiva) {
+                emergenciaBadge.innerHTML = '🛑 EMERGENCIA ACTIVA';
+                emergenciaBadge.style.background = '#e74c3c';
+            } else {
+                emergenciaBadge.innerHTML = '🛑 Emergencia: OFF';
+                emergenciaBadge.style.background = '#e67e22';
+            }
+        }
+        
+        // Sincronizar permiso especial
+        if (mensaje.permisoEspecial === true && permisoEspecialLocal === false) {
+            permisoEspecialLocal = true;
+            console.log("🔑 PERMISO ESPECIAL ACTIVADO");
+        } else if (mensaje.permisoEspecial === false && permisoEspecialLocal === true) {
+            permisoEspecialLocal = false;
+            console.log("🔒 PERMISO ESPECIAL DESACTIVADO");
+        }
+        
+        // Actualizar estado de sincronización
+        if (!sincronizado) {
+            sincronizado = true;
+            console.log("✅ Dashboard sincronizado con ESP32");
+        }
+        
+        // Actualizar habilitación de controles
+        actualizarHabilitacionControles();
+        
+        // Actualizar UI del permiso especial
+        const permisoEstado = document.getElementById('permisoEstado');
+        if (permisoEstado) {
+            if (permisoEspecialLocal) {
+                permisoEstado.innerHTML = `🔑 Permiso especial activo`;
+            } else {
+                permisoEstado.innerHTML = '';
+            }
+        }
+        
+        // Registrar eventos en el historial
+        if (mensaje.emergenciaActiva !== undefined && mensaje.emergenciaActiva !== ultimoEmergencia) {
+            if (mensaje.emergenciaActiva) {
+                registrarEvento('EMERGENCIA', 'Emergencia activada');
+                mostrarEmergencia(true);
+            } else {
+                registrarEvento('EMERGENCIA', 'Emergencia desactivada');
+                mostrarEmergencia(false);
+            }
+            ultimoEmergencia = mensaje.emergenciaActiva;
+        }
+    }
+    
+    if (topic === "porton/sensores") {
+        updateSensores(mensaje);
+    }
+}
+
+// ==================== RESTO DE FUNCIONES ====================
+
 function updateConfiguracion(data) {
-    console.log("🔄 Actualizando configuración desde ESP32:", data);
-    
-    if (!sincronizado) {
-        sincronizado = true;
-        console.log("✅ Dashboard sincronizado con ESP32");
-    }
-    
-    if (data.e) {
-        updatePortonUI(data.e);
-    }
-    
-    if (data.permisoEspecial === true && permisoEspecialLocal === false) {
-        permisoEspecialLocal = true;
-        console.log("🔑 PERMISO ESPECIAL sincronizado desde ESP32 (ACTIVADO)");
-        if (ultimoPermisoEspecial !== true) {
-            registrarEvento('PERMISO_ESPECIAL', 'Permiso especial activado (desde ESP32)');
-            ultimoPermisoEspecial = true;
-        }
-    } else if (data.permisoEspecial === false && permisoEspecialLocal === true) {
-        permisoEspecialLocal = false;
-        console.log("🔒 PERMISO ESPECIAL sincronizado desde ESP32 (DESACTIVADO)");
-        if (ultimoPermisoEspecial !== false) {
-            registrarEvento('PERMISO_ESPECIAL', 'Permiso especial desactivado (desde ESP32)');
-            ultimoPermisoEspecial = false;
-        }
-    }
-    
-    if (data.emergencia !== undefined && data.emergencia !== ultimoEmergencia) {
-        if (data.emergencia) {
-            registrarEvento('EMERGENCIA', 'Emergencia activada');
-            mostrarEmergencia(true);
-        } else {
-            registrarEvento('EMERGENCIA', 'Emergencia desactivada');
-            mostrarEmergencia(false);
-        }
-        ultimoEmergencia = data.emergencia;
-    }
-    
-    const toggleFoto = document.getElementById('toggleFoto');
-    if (toggleFoto) {
-        if (data.fotoHabilitado === true) {
-            toggleFoto.classList.add('active');
-            if (ultimoFoto !== true) {
-                registrarEvento('TOGGLE_FOTO', 'Activado');
-                ultimoFoto = true;
-            }
-        } else if (data.fotoHabilitado === false) {
-            toggleFoto.classList.remove('active');
-            if (ultimoFoto !== false) {
-                registrarEvento('TOGGLE_FOTO', 'Desactivado');
-                ultimoFoto = false;
-            }
-        }
-    }
-    
-    const toggleAuto = document.getElementById('toggleAuto');
-    if (toggleAuto) {
-        if (data.modoAuto === true) {
-            toggleAuto.classList.add('active');
-            if (ultimoAuto !== true) {
-                registrarEvento('TOGGLE_AUTO', 'Activado');
-                ultimoAuto = true;
-            }
-        } else if (data.modoAuto === false) {
-            toggleAuto.classList.remove('active');
-            if (ultimoAuto !== false) {
-                registrarEvento('TOGGLE_AUTO', 'Desactivado');
-                ultimoAuto = false;
-            }
-        }
-    }
-    
-    const toggleBoton = document.getElementById('toggleBoton');
-    const botonBadge = document.getElementById('botonBadge');
-    if (toggleBoton) {
-        if (data.botonFisicoHabilitado === true) {
-            toggleBoton.classList.add('active');
-            if (botonBadge) botonBadge.innerHTML = '🎮 Botón: ON';
-            if (ultimoBoton !== true) {
-                registrarEvento('TOGGLE_BOTON', 'Activado');
-                ultimoBoton = true;
-            }
-        } else if (data.botonFisicoHabilitado === false) {
-            toggleBoton.classList.remove('active');
-            if (botonBadge) botonBadge.innerHTML = '🎮 Botón: OFF';
-            if (ultimoBoton !== false) {
-                registrarEvento('TOGGLE_BOTON', 'Desactivado');
-                ultimoBoton = false;
-            }
-        }
-    }
-    
-    const togglePIR = document.getElementById('togglePIR');
-    const pirBadge = document.getElementById('pirBadge');
-    if (togglePIR) {
-        if (data.pirHabilitado === true) {
-            togglePIR.classList.add('active');
-            if (pirBadge) pirBadge.innerHTML = '🚪 PIR: ON';
-            if (ultimoPIR !== true) {
-                registrarEvento('TOGGLE_PIR', 'Activado');
-                ultimoPIR = true;
-            }
-        } else if (data.pirHabilitado === false) {
-            togglePIR.classList.remove('active');
-            if (pirBadge) pirBadge.innerHTML = '🚪 PIR: OFF';
-            if (ultimoPIR !== false) {
-                registrarEvento('TOGGLE_PIR', 'Desactivado');
-                ultimoPIR = false;
-            }
-        }
-    }
-    
-    const toggleHorario = document.getElementById('toggleHorario');
-    const horarioBadge = document.getElementById('horarioBadge');
-    if (toggleHorario) {
-        if (data.modoHorario === true) {
-            toggleHorario.classList.add('active');
-            if (horarioBadge) horarioBadge.innerHTML = '⏰ Horario: ON';
-            if (ultimoHorario !== true) {
-                registrarEvento('TOGGLE_HORARIO', 'Activado');
-                ultimoHorario = true;
-            }
-        } else if (data.modoHorario === false) {
-            toggleHorario.classList.remove('active');
-            if (horarioBadge) horarioBadge.innerHTML = '⏰ Horario: OFF';
-            if (ultimoHorario !== false) {
-                registrarEvento('TOGGLE_HORARIO', 'Desactivado');
-                ultimoHorario = false;
-            }
-        }
-    }
-    
-    actualizarHabilitacionControles();
-    
-    const permisoEstado = document.getElementById('permisoEstado');
-    if (permisoEstado) {
-        if (permisoEspecialLocal) {
-            permisoEstado.innerHTML = `🔑 Permiso especial activo`;
-        } else {
-            permisoEstado.innerHTML = '';
-        }
-    }
-    
-    const chapaBadge = document.getElementById('chapaBadge');
-    if (chapaBadge && data.chapa !== undefined) {
-        chapaBadge.innerHTML = data.chapa ? '🔐 Chapa: ON' : '🔐 Chapa: OFF';
-    }
-    
-    const mqttBadge = document.getElementById('mqttBadge');
-    if (mqttBadge && data.mqtt !== undefined) {
-        mqttBadge.innerHTML = data.mqtt ? '🌍 MQTT: Conectado' : '🌍 MQTT: Desconectado';
-    }
-    
-    const emergenciaBadge = document.getElementById('emergenciaBadge');
-    if (emergenciaBadge && data.emergencia !== undefined) {
-        emergenciaBadge.innerHTML = data.emergencia ? '🛑 EMERGENCIA ACTIVA' : '🛑 Emergencia: OFF';
-        emergenciaBadge.style.background = data.emergencia ? '#e74c3c' : '#e67e22';
-    }
+    // Redirigir a la función principal para mantener compatibilidad
+    procesarMensajeMQTT("porton/estado", data);
 }
 
 function actualizarTimestamp() {
@@ -502,7 +470,6 @@ function iniciarHeartbeatCheck() {
 
 setInterval(() => {
     if (sincronizado) {
-        console.log("⏰ Verificación periódica del horario");
         actualizarHabilitacionControles();
     }
 }, 60000);
@@ -640,3 +607,5 @@ function mostrarMensaje(msg, duration = 3000) {
         }, duration);
     }
 }
+
+console.log("✅ ui.js cargado correctamente - Versión corregida");
