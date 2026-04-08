@@ -65,6 +65,10 @@ function updatePortonUI(estado) {
         textoDiv.innerHTML = '⚠️ PORTÓN ENTREABIERTO';
         textoDiv.className = 'gate-status intermedio';
         puerta.style.left = 'calc(50% - 45px)';
+        if (ultimoEstadoPorton !== "INTERMEDIO") {
+            registrarEvento('PORTÓN_INTERMEDIO', 'Portón en posición intermedia');
+            ultimoEstadoPorton = "INTERMEDIO";
+        }
     }
 }
 
@@ -101,10 +105,11 @@ function isHorarioLaboral() {
     const hora = ahora.getHours();
     const minutos = ahora.getMinutes();
     
+    // Solo Lunes a Viernes (1 a 5)
     if (diaSemana >= 1 && diaSemana <= 5) {
         const minutosActuales = hora * 60 + minutos;
-        const minutosInicio = 7 * 60 + 30;
-        const minutosFin = 14 * 60 + 0;
+        const minutosInicio = 7 * 60 + 30;   // 7:30 AM
+        const minutosFin = 14 * 60 + 0;       // 2:00 PM
         return (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
     }
     return false;
@@ -115,6 +120,7 @@ function actualizarHabilitacionControles() {
     const btnPermiso = document.getElementById('btnPermiso');
     const modoHorarioActivo = document.getElementById('toggleHorario').classList.contains('active');
     
+    // Si no está sincronizado, todo deshabilitado
     if (!sincronizado) {
         toggles.forEach(id => {
             const el = document.getElementById(id);
@@ -130,27 +136,43 @@ function actualizarHabilitacionControles() {
         return;
     }
     
+    // ============================================
+    // LÓGICA CORREGIDA
+    // ============================================
     let habilitado = false;
     
+    // Si el usuario desactivó el modo horario manualmente
     if (!modoHorarioActivo) {
         habilitado = true;
-    } else if (permisoEspecialLocal) {
+        console.log("🔓 Modo horario desactivado manualmente - Controles HABILITADOS");
+    }
+    // Si el permiso especial está activo
+    else if (permisoEspecialLocal === true) {
         habilitado = true;
-    } else if (isHorarioLaboral()) {
+        console.log("🔓 Permiso especial ACTIVO - Controles HABILITADOS");
+    }
+    // Si estamos dentro del horario laboral
+    else if (isHorarioLaboral()) {
         habilitado = true;
-    } else {
+        console.log("📅 Dentro del horario laboral - Controles HABILITADOS");
+    }
+    // Si no, fuera del horario
+    else {
         habilitado = false;
+        console.log("⏰ Fuera del horario - Controles DESHABILITADOS");
     }
     
-    console.log("📅 Controles habilitados:", habilitado);
-    console.log("   Permiso especial:", permisoEspecialLocal);
-    console.log("   Horario laboral:", isHorarioLaboral());
+    console.log("   permisoEspecialLocal:", permisoEspecialLocal);
+    console.log("   modoHorarioActivo:", modoHorarioActivo);
+    console.log("   isHorarioLaboral:", isHorarioLaboral());
     
     if (habilitado) {
+        // HABILITAR controles
         toggles.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.classList.remove('disabled');
+                // Restaurar onclick
                 if (id === 'toggleFoto') el.onclick = () => toggleSensor('foto');
                 else if (id === 'toggleAuto') el.onclick = () => toggleModoAuto();
                 else if (id === 'toggleBoton') el.onclick = () => toggleBotonFisico();
@@ -163,11 +185,12 @@ function actualizarHabilitacionControles() {
             btnPermiso.classList.add('disabled');
         }
     } else {
+        // DESHABILITAR controles
         toggles.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.classList.add('disabled');
-                el.onclick = null;
+                el.onclick = null;  // Eliminar onclick para que no se pueda clickear
             }
         });
         if (btnPermiso) {
@@ -190,18 +213,21 @@ function updateConfiguracion(data) {
         updatePortonUI(data.e);
     }
     
+    // Actualizar permiso especial local
     if (data.permisoEspecial === true) {
         permisoEspecialLocal = true;
+        console.log("🔑 PERMISO ESPECIAL ACTIVADO desde ESP32");
         if (ultimoPermisoEspecial !== true) {
             registrarEvento('PERMISO_ESPECIAL', 'Permiso especial activado');
             ultimoPermisoEspecial = true;
         }
-    } else if (data.permisoEspecial === false && permisoEspecialLocal === true) {
-        permisoEspecialLocal = false;
-        if (ultimoPermisoEspecial !== false) {
+    } else if (data.permisoEspecial === false) {
+        if (permisoEspecialLocal === true) {
+            console.log("🔒 PERMISO ESPECIAL DESACTIVADO desde ESP32");
             registrarEvento('PERMISO_ESPECIAL', 'Permiso especial desactivado');
-            ultimoPermisoEspecial = false;
         }
+        permisoEspecialLocal = false;
+        ultimoPermisoEspecial = false;
     }
     
     // Emergencia
@@ -315,6 +341,7 @@ function updateConfiguracion(data) {
         }
     }
     
+    // ACTUALIZAR HABILITACIÓN DE CONTROLES (después de actualizar permisoEspecialLocal)
     actualizarHabilitacionControles();
     
     const permisoEstado = document.getElementById('permisoEstado');
@@ -396,10 +423,14 @@ function toggleHorario() {
 
 function activarPermisoConTiempo() {
     let minutos = document.getElementById('permisoMinutos').value;
+    console.log("🔑 Activando permiso especial por", minutos, "minutos");
     enviarComando(`ACTIVAR_PERMISO:${minutos}`);
     permisoEspecialLocal = true;
     mostrarMensaje(`🔑 Permiso especial activado por ${minutos} minutos`);
-    setTimeout(() => actualizarHabilitacionControles(), 500);
+    // Forzar actualización de controles
+    setTimeout(() => {
+        actualizarHabilitacionControles();
+    }, 500);
 }
 
 function mostrarAdmin() {
@@ -492,6 +523,7 @@ function iniciarHeartbeatCheck() {
     }, 5000);
 }
 
+// Verificar cada minuto
 setInterval(() => {
     if (sincronizado) {
         actualizarHabilitacionControles();
@@ -552,7 +584,7 @@ function actualizarTablaHistorial() {
     tbody.innerHTML = eventosFiltrados.map(e => `
         <tr>
             <td>${e.fecha}</td>
-            <td><span class="event-badge event-${e.tipo.toLowerCase()}">${e.tipo}</span></td>
+            <td><span class="event-badge">${e.tipo}</span></td>
             <td>${e.detalle}</td>
         </tr>
     `).join('');
@@ -611,4 +643,18 @@ function clearEventsWithPassword() {
     } else if (password !== null) {
         alert("❌ Contraseña incorrecta");
     }
+}
+
+// Función global para mostrar mensajes (si no existe)
+if (typeof mostrarMensaje !== 'function') {
+    window.mostrarMensaje = function(msg, duration = 3000) {
+        const msgDiv = document.getElementById('mensajeFlotante');
+        if (msgDiv) {
+            msgDiv.innerHTML = msg;
+            msgDiv.style.display = 'block';
+            setTimeout(() => {
+                msgDiv.style.display = 'none';
+            }, duration);
+        }
+    };
 }
