@@ -8,14 +8,12 @@ function mostrarEmergencia(mostrar) {
             overlay.style.display = 'flex';
             emergenciaActivaLocal = true;
             
-            // Verificar si es emergencia remota (necesita contraseña)
-            if (emergenciaRemotaLocal) {
+            if (typeof emergenciaRemotaLocal !== 'undefined' && emergenciaRemotaLocal) {
                 document.getElementById('emergenciaContrasena').style.display = 'block';
                 document.getElementById('btnRecargarEmergencia').style.display = 'none';
             } else {
                 document.getElementById('emergenciaContrasena').style.display = 'none';
                 document.getElementById('btnRecargarEmergencia').style.display = 'block';
-                // Recargar después de 3 segundos para emergencia física
                 setTimeout(() => {
                     location.reload();
                 }, 3000);
@@ -31,9 +29,11 @@ function mostrarEmergencia(mostrar) {
 
 function desactivarEmergenciaRemotaUI() {
     const contrasena = document.getElementById('contrasenaEmergencia').value;
-    enviarComando(`DESACTIVAR_EMERGENCIA_REMOTA:${contrasena}`);
+    if (typeof enviarComando === 'function') {
+        enviarComando(`DESACTIVAR_EMERGENCIA_REMOTA:${contrasena}`);
+    }
     if (contrasena === "123") {
-        mostrarMensaje("✅ Emergencia remota desactivada");
+        if (typeof mostrarMensaje === 'function') mostrarMensaje("✅ Emergencia remota desactivada");
         setTimeout(() => {
             location.reload();
         }, 1500);
