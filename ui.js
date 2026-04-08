@@ -99,9 +99,13 @@ function updateSensores(data) {
     }
 }
 
+// ============================================
+// LÓGICA DE HORARIO INDEPENDIENTE (igual al ESP32)
+// ============================================
+
 function isHorarioLaboral() {
     const ahora = new Date();
-    const diaSemana = ahora.getDay();
+    const diaSemana = ahora.getDay();     // 0=Domingo, 1=Lunes...6=Sábado
     const hora = ahora.getHours();
     const minutos = ahora.getMinutes();
     
@@ -110,8 +114,12 @@ function isHorarioLaboral() {
         const minutosActuales = hora * 60 + minutos;
         const minutosInicio = 7 * 60 + 30;   // 7:30 AM
         const minutosFin = 14 * 60 + 0;       // 2:00 PM
-        return (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
+        const activo = (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
+        
+        console.log(`📅 Horario: ${hora}:${minutos} - ${activo ? 'DENTRO' : 'FUERA'} del horario laboral`);
+        return activo;
     }
+    console.log(`📅 Fin de semana - FUERA del horario laboral`);
     return false;
 }
 
@@ -120,7 +128,7 @@ function actualizarHabilitacionControles() {
     const btnPermiso = document.getElementById('btnPermiso');
     const modoHorarioActivo = document.getElementById('toggleHorario').classList.contains('active');
     
-    // Si no está sincronizado, todo deshabilitado
+    // Si no está sincronizado, todo deshabilitado temporalmente
     if (!sincronizado) {
         toggles.forEach(id => {
             const el = document.getElementById(id);
@@ -137,34 +145,34 @@ function actualizarHabilitacionControles() {
     }
     
     // ============================================
-    // LÓGICA CORREGIDA
+    // LÓGICA DE HABILITACIÓN (independiente del ESP32)
     // ============================================
     let habilitado = false;
     
-    // Si el usuario desactivó el modo horario manualmente
+    // Caso 1: El usuario desactivó manualmente el modo horario
     if (!modoHorarioActivo) {
         habilitado = true;
-        console.log("🔓 Modo horario desactivado manualmente - Controles HABILITADOS");
+        console.log("🔓 Modo horario DESACTIVADO manualmente - Controles HABILITADOS");
     }
-    // Si el permiso especial está activo
+    // Caso 2: Permiso especial activo (desde el ESP32 o local)
     else if (permisoEspecialLocal === true) {
         habilitado = true;
-        console.log("🔓 Permiso especial ACTIVO - Controles HABILITADOS");
+        console.log("🔑 Permiso especial ACTIVO - Controles HABILITADOS");
     }
-    // Si estamos dentro del horario laboral
+    // Caso 3: Dentro del horario laboral (calculado localmente)
     else if (isHorarioLaboral()) {
         habilitado = true;
-        console.log("📅 Dentro del horario laboral - Controles HABILITADOS");
+        console.log("📅 DENTRO del horario laboral - Controles HABILITADOS");
     }
-    // Si no, fuera del horario
+    // Caso 4: Fuera del horario
     else {
         habilitado = false;
-        console.log("⏰ Fuera del horario - Controles DESHABILITADOS");
+        console.log("⏰ FUERA del horario laboral - Controles DESHABILITADOS");
     }
     
-    console.log("   permisoEspecialLocal:", permisoEspecialLocal);
-    console.log("   modoHorarioActivo:", modoHorarioActivo);
-    console.log("   isHorarioLaboral:", isHorarioLaboral());
+    console.log("   ➤ permisoEspecialLocal:", permisoEspecialLocal);
+    console.log("   ➤ modoHorarioActivo:", modoHorarioActivo);
+    console.log("   ➤ Controles habilitados:", habilitado);
     
     if (habilitado) {
         // HABILITAR controles
@@ -201,7 +209,7 @@ function actualizarHabilitacionControles() {
 }
 
 function updateConfiguracion(data) {
-    console.log("🔄 Actualizando configuración:", data);
+    console.log("🔄 Actualizando configuración desde ESP32:", data);
     
     if (!sincronizado) {
         sincronizado = true;
@@ -213,21 +221,21 @@ function updateConfiguracion(data) {
         updatePortonUI(data.e);
     }
     
-    // Actualizar permiso especial local
-    if (data.permisoEspecial === true) {
+    // Sincronizar permiso especial desde el ESP32 (pero mantener lógica local)
+    if (data.permisoEspecial === true && permisoEspecialLocal === false) {
         permisoEspecialLocal = true;
-        console.log("🔑 PERMISO ESPECIAL ACTIVADO desde ESP32");
+        console.log("🔑 PERMISO ESPECIAL sincronizado desde ESP32 (ACTIVADO)");
         if (ultimoPermisoEspecial !== true) {
-            registrarEvento('PERMISO_ESPECIAL', 'Permiso especial activado');
+            registrarEvento('PERMISO_ESPECIAL', 'Permiso especial activado (desde ESP32)');
             ultimoPermisoEspecial = true;
         }
-    } else if (data.permisoEspecial === false) {
-        if (permisoEspecialLocal === true) {
-            console.log("🔒 PERMISO ESPECIAL DESACTIVADO desde ESP32");
-            registrarEvento('PERMISO_ESPECIAL', 'Permiso especial desactivado');
-        }
+    } else if (data.permisoEspecial === false && permisoEspecialLocal === true) {
         permisoEspecialLocal = false;
-        ultimoPermisoEspecial = false;
+        console.log("🔒 PERMISO ESPECIAL sincronizado desde ESP32 (DESACTIVADO)");
+        if (ultimoPermisoEspecial !== false) {
+            registrarEvento('PERMISO_ESPECIAL', 'Permiso especial desactivado (desde ESP32)');
+            ultimoPermisoEspecial = false;
+        }
     }
     
     // Emergencia
@@ -341,7 +349,7 @@ function updateConfiguracion(data) {
         }
     }
     
-    // ACTUALIZAR HABILITACIÓN DE CONTROLES (después de actualizar permisoEspecialLocal)
+    // ACTUALIZAR HABILITACIÓN DE CONTROLES (con lógica local)
     actualizarHabilitacionControles();
     
     const permisoEstado = document.getElementById('permisoEstado');
@@ -476,6 +484,7 @@ function desactivarEmergenciaRemotaUI() {
 }
 
 let emergenciaActivaLocal = false;
+let emergenciaRemotaLocal = false;
 
 function mostrarEmergencia(mostrar) {
     const overlay = document.getElementById('emergenciaOverlay');
@@ -523,12 +532,22 @@ function iniciarHeartbeatCheck() {
     }, 5000);
 }
 
-// Verificar cada minuto
+// Verificar el horario cada minuto (para actualizar los toggles automáticamente)
 setInterval(() => {
     if (sincronizado) {
+        console.log("⏰ Verificación periódica del horario");
         actualizarHabilitacionControles();
     }
 }, 60000);
+
+// También verificar al cargar la página
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        if (sincronizado) {
+            actualizarHabilitacionControles();
+        }
+    }, 2000);
+});
 
 // ==================== HISTORIAL DE EVENTOS ====================
 
@@ -638,23 +657,21 @@ function clearEventsWithPassword() {
         if (confirm('¿Está seguro de eliminar TODO el historial de eventos? Esta acción no se puede deshacer.')) {
             localStorage.setItem('historial_porton', '[]');
             actualizarTablaHistorial();
-            mostrarMensaje('🗑️ Historial eliminado correctamente');
+            mostrarMensage('🗑️ Historial eliminado correctamente');
         }
     } else if (password !== null) {
         alert("❌ Contraseña incorrecta");
     }
 }
 
-// Función global para mostrar mensajes (si no existe)
-if (typeof mostrarMensaje !== 'function') {
-    window.mostrarMensaje = function(msg, duration = 3000) {
-        const msgDiv = document.getElementById('mensajeFlotante');
-        if (msgDiv) {
-            msgDiv.innerHTML = msg;
-            msgDiv.style.display = 'block';
-            setTimeout(() => {
-                msgDiv.style.display = 'none';
-            }, duration);
-        }
-    };
+// Función auxiliar
+function mostrarMensage(msg, duration = 3000) {
+    const msgDiv = document.getElementById('mensajeFlotante');
+    if (msgDiv) {
+        msgDiv.innerHTML = msg;
+        msgDiv.style.display = 'block';
+        setTimeout(() => {
+            msgDiv.style.display = 'none';
+        }, duration);
+    }
 }
