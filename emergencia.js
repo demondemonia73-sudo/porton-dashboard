@@ -1,5 +1,4 @@
 let emergenciaActivaLocal = false;
-// emergenciaRemotaLocal está declarada en ui.js, no la redeclaramos aquí
 
 function mostrarEmergencia(mostrar) {
     const overlay = document.getElementById('emergenciaOverlay');
