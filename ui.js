@@ -2,7 +2,7 @@ let panelAbierto = true;
 let permisoEspecialLocal = false;
 let adminAutorizado = false;
 let sincronizado = false;
-let emergenciaRemotaLocal = false;  // ← MOVIDA AL PRINCIPIO
+let emergenciaRemotaLocal = false;
 
 // Variables para evitar duplicados en el historial
 let ultimoEstadoPorton = null;
@@ -20,11 +20,11 @@ function togglePanel() {
     const arrow = document.getElementById('panelArrow');
     
     if (panelAbierto) {
-        content.classList.remove('collapsed');
-        arrow.classList.remove('collapsed');
+        if (content) content.classList.remove('collapsed');
+        if (arrow) arrow.classList.remove('collapsed');
     } else {
-        content.classList.add('collapsed');
-        arrow.classList.add('collapsed');
+        if (content) content.classList.add('collapsed');
+        if (arrow) arrow.classList.add('collapsed');
     }
 }
 
@@ -100,23 +100,17 @@ function updateSensores(data) {
     }
 }
 
-// ============================================
-// LÓGICA DE HORARIO INDEPENDIENTE (igual al ESP32)
-// ============================================
-
 function isHorarioLaboral() {
     const ahora = new Date();
-    const diaSemana = ahora.getDay();     // 0=Domingo, 1=Lunes...6=Sábado
+    const diaSemana = ahora.getDay();
     const hora = ahora.getHours();
     const minutos = ahora.getMinutes();
     
-    // Solo Lunes a Viernes (1 a 5)
     if (diaSemana >= 1 && diaSemana <= 5) {
         const minutosActuales = hora * 60 + minutos;
-        const minutosInicio = 7 * 60 + 30;   // 7:30 AM
-        const minutosFin = 14 * 60 + 0;       // 2:00 PM
+        const minutosInicio = 7 * 60 + 30;
+        const minutosFin = 14 * 60 + 0;
         const activo = (minutosActuales >= minutosInicio && minutosActuales < minutosFin);
-        
         console.log(`📅 Horario: ${hora}:${minutos} - ${activo ? 'DENTRO' : 'FUERA'} del horario laboral`);
         return activo;
     }
@@ -129,7 +123,6 @@ function actualizarHabilitacionControles() {
     const btnPermiso = document.getElementById('btnPermiso');
     const modoHorarioActivo = document.getElementById('toggleHorario').classList.contains('active');
     
-    // Si no está sincronizado, todo deshabilitado temporalmente
     if (!sincronizado) {
         toggles.forEach(id => {
             const el = document.getElementById(id);
@@ -145,28 +138,18 @@ function actualizarHabilitacionControles() {
         return;
     }
     
-    // ============================================
-    // LÓGICA DE HABILITACIÓN (independiente del ESP32)
-    // ============================================
     let habilitado = false;
     
-    // Caso 1: El usuario desactivó manualmente el modo horario
     if (!modoHorarioActivo) {
         habilitado = true;
         console.log("🔓 Modo horario DESACTIVADO manualmente - Controles HABILITADOS");
-    }
-    // Caso 2: Permiso especial activo (desde el ESP32 o local)
-    else if (permisoEspecialLocal === true) {
+    } else if (permisoEspecialLocal === true) {
         habilitado = true;
         console.log("🔑 Permiso especial ACTIVO - Controles HABILITADOS");
-    }
-    // Caso 3: Dentro del horario laboral (calculado localmente)
-    else if (isHorarioLaboral()) {
+    } else if (isHorarioLaboral()) {
         habilitado = true;
         console.log("📅 DENTRO del horario laboral - Controles HABILITADOS");
-    }
-    // Caso 4: Fuera del horario
-    else {
+    } else {
         habilitado = false;
         console.log("⏰ FUERA del horario laboral - Controles DESHABILITADOS");
     }
@@ -176,12 +159,10 @@ function actualizarHabilitacionControles() {
     console.log("   ➤ Controles habilitados:", habilitado);
     
     if (habilitado) {
-        // HABILITAR controles
         toggles.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.classList.remove('disabled');
-                // Restaurar onclick
                 if (id === 'toggleFoto') el.onclick = () => toggleSensor('foto');
                 else if (id === 'toggleAuto') el.onclick = () => toggleModoAuto();
                 else if (id === 'toggleBoton') el.onclick = () => toggleBotonFisico();
@@ -194,12 +175,11 @@ function actualizarHabilitacionControles() {
             btnPermiso.classList.add('disabled');
         }
     } else {
-        // DESHABILITAR controles
         toggles.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
                 el.classList.add('disabled');
-                el.onclick = null;  // Eliminar onclick para que no se pueda clickear
+                el.onclick = null;
             }
         });
         if (btnPermiso) {
@@ -217,12 +197,10 @@ function updateConfiguracion(data) {
         console.log("✅ Dashboard sincronizado con ESP32");
     }
     
-    // Actualizar estado del portón visualmente
     if (data.e) {
         updatePortonUI(data.e);
     }
     
-    // Sincronizar permiso especial desde el ESP32 (pero mantener lógica local)
     if (data.permisoEspecial === true && permisoEspecialLocal === false) {
         permisoEspecialLocal = true;
         console.log("🔑 PERMISO ESPECIAL sincronizado desde ESP32 (ACTIVADO)");
@@ -239,7 +217,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Emergencia
     if (data.emergencia !== undefined && data.emergencia !== ultimoEmergencia) {
         if (data.emergencia) {
             registrarEvento('EMERGENCIA', 'Emergencia activada');
@@ -251,7 +228,6 @@ function updateConfiguracion(data) {
         ultimoEmergencia = data.emergencia;
     }
     
-    // Fotoeléctrica
     const toggleFoto = document.getElementById('toggleFoto');
     if (toggleFoto) {
         if (data.fotoHabilitado === true) {
@@ -269,7 +245,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Modo Automático
     const toggleAuto = document.getElementById('toggleAuto');
     if (toggleAuto) {
         if (data.modoAuto === true) {
@@ -287,7 +262,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Botón Físico
     const toggleBoton = document.getElementById('toggleBoton');
     const botonBadge = document.getElementById('botonBadge');
     if (toggleBoton) {
@@ -308,7 +282,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Sensores PIR
     const togglePIR = document.getElementById('togglePIR');
     const pirBadge = document.getElementById('pirBadge');
     if (togglePIR) {
@@ -329,7 +302,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // Modo Horario
     const toggleHorario = document.getElementById('toggleHorario');
     const horarioBadge = document.getElementById('horarioBadge');
     if (toggleHorario) {
@@ -350,7 +322,6 @@ function updateConfiguracion(data) {
         }
     }
     
-    // ACTUALIZAR HABILITACIÓN DE CONTROLES (con lógica local)
     actualizarHabilitacionControles();
     
     const permisoEstado = document.getElementById('permisoEstado');
@@ -491,14 +462,12 @@ function mostrarEmergencia(mostrar) {
         if (!emergenciaActivaLocal) {
             overlay.style.display = 'flex';
             emergenciaActivaLocal = true;
-            // Verificar si es emergencia remota
             if (emergenciaRemotaLocal) {
                 document.getElementById('emergenciaContrasena').style.display = 'block';
                 document.getElementById('btnRecargarEmergencia').style.display = 'none';
             } else {
                 document.getElementById('emergenciaContrasena').style.display = 'none';
                 document.getElementById('btnRecargarEmergencia').style.display = 'block';
-                // Recargar después de 3 segundos para emergencia física
                 setTimeout(() => {
                     location.reload();
                 }, 3000);
@@ -531,7 +500,6 @@ function iniciarHeartbeatCheck() {
     }, 5000);
 }
 
-// Verificar el horario cada minuto (para actualizar los toggles automáticamente)
 setInterval(() => {
     if (sincronizado) {
         console.log("⏰ Verificación periódica del horario");
@@ -539,7 +507,6 @@ setInterval(() => {
     }
 }, 60000);
 
-// También verificar al cargar la página
 window.addEventListener('load', () => {
     setTimeout(() => {
         if (sincronizado) {
@@ -660,5 +627,16 @@ function clearEventsWithPassword() {
         }
     } else if (password !== null) {
         alert("❌ Contraseña incorrecta");
+    }
+}
+
+function mostrarMensaje(msg, duration = 3000) {
+    const msgDiv = document.getElementById('mensajeFlotante');
+    if (msgDiv) {
+        msgDiv.innerHTML = msg;
+        msgDiv.style.display = 'block';
+        setTimeout(() => {
+            msgDiv.style.display = 'none';
+        }, duration);
     }
 }
